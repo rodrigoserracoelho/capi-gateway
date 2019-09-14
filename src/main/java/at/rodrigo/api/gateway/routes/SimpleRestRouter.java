@@ -8,12 +8,11 @@ import at.rodrigo.api.gateway.utils.Constants;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
+import org.apache.http.conn.HttpHostConnectException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
-
-import java.text.ParseException;
 
 @Component
 @Slf4j
@@ -26,7 +25,7 @@ public class SimpleRestRouter extends RouteBuilder {
     private String apiGatewayRestEndpoint;
 
     @Autowired
-    private AuthProcessor processor;
+    private AuthProcessor authProcessor;
 
 
     @Override
@@ -47,18 +46,26 @@ public class SimpleRestRouter extends RouteBuilder {
             if(api.isSecured()) {
                 from("direct:" + api.getContext() + path.getPath() + "-" + path.getVerb())
                         .streamCaching()
+                        .onException(HttpHostConnectException.class)
+                            .setHeader(Constants.REASON_HEADER, constant("503"))
+                            .removeHeader(Constants.VALID_HEADER)
+                            .continued(true)
+                            .toF(Constants.FAIL_REST_ENDPOINT_OBJECT, apiGatewayErrorEndpoint)
+                            .removeHeader(Constants.REASON_HEADER)
+                            .end()
                         .setHeader(Constants.JSON_WEB_KEY_SIGNATURE_ENDPOINT_HEADER, constant(api.getJwsEndpoint()))
                         .setHeader(Constants.BLOCK_IF_IN_ERROR_HEADER, constant(path.isBlockIfInError()))
-                        .process(processor)
+                        .process(authProcessor)
 
                         .choice()
-                        .when(simple("${in.headers.VALID} == true"))
+                        .when(simple("${in.headers.valid} == true"))
                         .toF(Constants.REST_ENDPOINT_OBJECT, (api.getEndpoint() + path.getPath()))
+                        .removeHeader(Constants.VALID_HEADER)
                         .log("Response from " + api.getName() + ": ${body}")
                         .convertBodyTo(String.class)
 
                         .otherwise()
-                        .setHeader("routeId",constant(Constants.DIRECT_ROUTE_PREFIX + api.getContext() + path.getPath() + "-" + path.getVerb()))
+                        .setHeader(Constants.ROUTE_ID_HEADER,constant(Constants.DIRECT_ROUTE_PREFIX + api.getContext() + path.getPath() + "-" + path.getVerb()))
                         .toF(Constants.FAIL_REST_ENDPOINT_OBJECT, apiGatewayErrorEndpoint)
                         .log("ERROR on " + api.getName() + ": ${body}")
                         .convertBodyTo(String.class)
@@ -67,6 +74,12 @@ public class SimpleRestRouter extends RouteBuilder {
             } else {
                 from("direct:" + api.getContext() + path.getPath() + "-" + path.getVerb())
                         .streamCaching()
+                        .onException(HttpHostConnectException.class)
+                            .setHeader(Constants.REASON_HEADER, constant("503"))
+                            .continued(true)
+                            .toF(Constants.FAIL_REST_ENDPOINT_OBJECT, apiGatewayErrorEndpoint)
+                            .removeHeader(Constants.REASON_HEADER)
+                            .end()
                         .toF(Constants.REST_ENDPOINT_OBJECT, (api.getEndpoint() + path.getPath()))
                         .log("Response from "+ api.getName() + ": ${body}")
                         .convertBodyTo(String.class)

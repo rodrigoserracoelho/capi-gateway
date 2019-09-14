@@ -33,6 +33,7 @@ public class AuthProcessor implements Processor {
             String jwtToken = exchange.getIn().getHeader(Constants.AUTHORIZATION_HEADER).toString().substring("Bearer ".length());
             exchange.getIn().removeHeader(Constants.JSON_WEB_KEY_SIGNATURE_ENDPOINT_HEADER);
             exchange.getIn().removeHeader(Constants.AUTHORIZATION_HEADER);
+            exchange.getIn().removeHeader(Constants.BLOCK_IF_IN_ERROR_HEADER);
 //authorizationHeader.substring("Bearer ".length()) : null;
             if(jwtKeysEndpoint != null && jwtToken != null) {
             //try {

@@ -9,4 +9,7 @@ public class Constants {
     public static final String JSON_WEB_KEY_SIGNATURE_ENDPOINT_HEADER = "jwks-endpoint";
     public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String BLOCK_IF_IN_ERROR_HEADER = "block-if-in-error";
- }
+    public static final String VALID_HEADER = "valid";
+    public static final String REASON_HEADER = "error-reason-code";
+    public static final String ROUTE_ID_HEADER = "routeID";
+}
