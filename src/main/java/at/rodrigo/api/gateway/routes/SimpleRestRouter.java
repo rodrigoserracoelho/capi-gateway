@@ -45,6 +45,7 @@ public class SimpleRestRouter extends RouteBuilder {
             if(api.isSecured()) {
                 from("direct:" + api.getContext() + path.getPath() + "-" + path.getVerb())
                         .streamCaching()
+                        .setHeader("jwks_endpoint", constant("https://rodrigocoelho.auth0.com/.well-known/jwks.json"))
                         .process(processor)
                         .choice()
                         .when(simple("${in.headers.VALID} == true"))
