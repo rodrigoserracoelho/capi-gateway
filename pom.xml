@@ -105,9 +105,11 @@
 
 
     <dependency>
-      <groupId>org.springframework.security</groupId>
-      <artifactId>spring-security-oauth2-jose</artifactId>
+      <groupId>com.nimbusds</groupId>
+      <artifactId>oauth2-oidc-sdk</artifactId>
+      <version>6.14</version>
     </dependency>
+
 
 
 

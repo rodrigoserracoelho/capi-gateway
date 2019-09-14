@@ -19,8 +19,9 @@ public class ErrorController {
 
         JSONObject result = new JSONObject();
         result.put("error", "permission denied");
+        log.info(request.getHeader("routeId"));
 
-        return new ResponseEntity<String>(result.toString(), HttpStatus.FORBIDDEN);
+        return new ResponseEntity<>(result.toString(), HttpStatus.BAD_REQUEST);
     }
 
     @RequestMapping( path="/error", method=RequestMethod.POST)
@@ -28,7 +29,16 @@ public class ErrorController {
 
         JSONObject result = new JSONObject();
         result.put("error", "permission denied");
-        return new ResponseEntity<String>(result.toString(), HttpStatus.FORBIDDEN);
+        return new ResponseEntity<>(result.toString(), HttpStatus.BAD_REQUEST);
+    }
+
+    @RequestMapping( path="/error", method=RequestMethod.PUT)
+    public ResponseEntity<String> put(HttpServletRequest request) {
+
+        JSONObject result = new JSONObject();
+        result.put("error", "permission denied");
+        log.info(request.getHeader("routeId"));
+        return new ResponseEntity<>(result.toString(), HttpStatus.BAD_REQUEST);
     }
 
 

@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import java.text.ParseException;
+
 @Component
 @Slf4j
 public class SimpleRestRouter extends RouteBuilder {
@@ -45,8 +47,10 @@ public class SimpleRestRouter extends RouteBuilder {
             if(api.isSecured()) {
                 from("direct:" + api.getContext() + path.getPath() + "-" + path.getVerb())
                         .streamCaching()
-                        .setHeader("jwks_endpoint", constant("https://rodrigocoelho.auth0.com/.well-known/jwks.json"))
+                        .setHeader(Constants.JSON_WEB_KEY_SIGNATURE_ENDPOINT_HEADER, constant(api.getJwsEndpoint()))
+                        .setHeader(Constants.BLOCK_IF_IN_ERROR_HEADER, constant(path.isBlockIfInError()))
                         .process(processor)
+
                         .choice()
                         .when(simple("${in.headers.VALID} == true"))
                         .toF(Constants.REST_ENDPOINT_OBJECT, (api.getEndpoint() + path.getPath()))
@@ -54,10 +58,10 @@ public class SimpleRestRouter extends RouteBuilder {
                         .convertBodyTo(String.class)
 
                         .otherwise()
+                        .setHeader("routeId",constant(Constants.DIRECT_ROUTE_PREFIX + api.getContext() + path.getPath() + "-" + path.getVerb()))
                         .toF(Constants.FAIL_REST_ENDPOINT_OBJECT, apiGatewayErrorEndpoint)
                         .log("ERROR on " + api.getName() + ": ${body}")
                         .convertBodyTo(String.class)
-
                         .end()
                         .setId(Constants.DIRECT_ROUTE_PREFIX + api.getContext() + path.getPath() + "-" + path.getVerb());
             } else {

@@ -27,15 +27,15 @@ public class AuthProcessor implements Processor {
    private JWSChecker jwsChecker;
 
     public void process(Exchange exchange) throws Exception {
-
-        String jwtKeysEndpoint = exchange.getIn().getHeader(Constants.JSON_WEB_KEY_SIGNATURE_ENDPOINT_HEADER).toString();
-        String jwtToken = exchange.getIn().getHeader(Constants.AUTHORIZATION_HEADER).toString().substring("Bearer ".length());
         exchange.getIn().setHeader("VALID", false);
-        exchange.getIn().removeHeader(Constants.JSON_WEB_KEY_SIGNATURE_ENDPOINT_HEADER);
-        exchange.getIn().removeHeader(Constants.AUTHORIZATION_HEADER);
+        try {
+            String jwtKeysEndpoint = exchange.getIn().getHeader(Constants.JSON_WEB_KEY_SIGNATURE_ENDPOINT_HEADER).toString();
+            String jwtToken = exchange.getIn().getHeader(Constants.AUTHORIZATION_HEADER).toString().substring("Bearer ".length());
+            exchange.getIn().removeHeader(Constants.JSON_WEB_KEY_SIGNATURE_ENDPOINT_HEADER);
+            exchange.getIn().removeHeader(Constants.AUTHORIZATION_HEADER);
 //authorizationHeader.substring("Bearer ".length()) : null;
-        if(jwtKeysEndpoint != null && jwtToken != null) {
-            try {
+            if(jwtKeysEndpoint != null && jwtToken != null) {
+            //try {
                 ConfigurableJWTProcessor jwtProcessor = new DefaultJWTProcessor();
                 JWKSource keySource = new RemoteJWKSet(new URL(jwtKeysEndpoint));
                 JWSAlgorithm expectedJWSAlg = jwsChecker.getAlgorithm(jwtToken);
@@ -45,9 +45,12 @@ public class AuthProcessor implements Processor {
                 if(claimsSet != null) {
                     exchange.getIn().setHeader("VALID", true);
                 }
-            } catch(Exception e) {
-                log.info(e.getMessage());
             }
+        } catch(Exception e) {
+            log.info(e.getClass().getCanonicalName());
+            log.info("--------------------| "+ e.getMessage());
+exchange.setException(null);
+
         }
     }
 }
