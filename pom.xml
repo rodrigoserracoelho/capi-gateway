@@ -62,7 +62,6 @@
       <artifactId>camel-http4-starter</artifactId>
       <version>3.0.0-M1</version>
     </dependency>
-
     <dependency>
       <groupId>org.apache.camel</groupId>
       <artifactId>camel-servlet-starter</artifactId>
@@ -103,16 +102,22 @@
       <version>1.0</version>
     </dependency>
 
-
+    <!-- JWT dependencies -->
     <dependency>
       <groupId>com.nimbusds</groupId>
       <artifactId>oauth2-oidc-sdk</artifactId>
       <version>6.14</version>
     </dependency>
 
-
-
-
+    <!-- Hazelcast dependencies -->
+    <dependency>
+      <groupId>com.hazelcast</groupId>
+      <artifactId>hazelcast</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.hazelcast</groupId>
+      <artifactId>hazelcast-spring</artifactId>
+    </dependency>
   </dependencies>
 
   <build>

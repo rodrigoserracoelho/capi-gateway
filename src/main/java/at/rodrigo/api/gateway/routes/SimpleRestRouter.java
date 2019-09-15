@@ -1,6 +1,7 @@
 package at.rodrigo.api.gateway.routes;
 
 
+import at.rodrigo.api.gateway.cache.RunningApiManager;
 import at.rodrigo.api.gateway.entity.Api;
 import at.rodrigo.api.gateway.entity.Path;
 import at.rodrigo.api.gateway.processor.AuthProcessor;
@@ -28,6 +29,9 @@ public class SimpleRestRouter extends RouteBuilder {
     @Autowired
     private AuthProcessor authProcessor;
 
+    @Autowired
+    private RunningApiManager runningApiManager;
+
 
     @Override
     public void configure() {
@@ -50,11 +54,13 @@ public class SimpleRestRouter extends RouteBuilder {
                         .onException(HttpHostConnectException.class)
                             .setHeader(Constants.REASON_CODE_HEADER, constant(HttpStatus.SERVICE_UNAVAILABLE.value()))
                             .setHeader(Constants.REASON_MESSAGE_HEADER, constant("API NOT AVAILABLE"))
+                            .setHeader(Constants.ROUTE_ID_HEADER,constant(api.getContext() + path.getPath() + "-" + path.getVerb()))
                             .removeHeader(Constants.VALID_HEADER)
                             .continued(true)
                             .toF(Constants.FAIL_REST_ENDPOINT_OBJECT, apiGatewayErrorEndpoint)
                             .removeHeader(Constants.REASON_CODE_HEADER)
                             .removeHeader(Constants.REASON_MESSAGE_HEADER)
+                            .removeHeader(Constants.ROUTE_ID_HEADER)
                             .end()
                         .setHeader(Constants.JSON_WEB_KEY_SIGNATURE_ENDPOINT_HEADER, constant(api.getJwsEndpoint()))
                         .setHeader(Constants.BLOCK_IF_IN_ERROR_HEADER, constant(path.isBlockIfInError()))
@@ -68,24 +74,28 @@ public class SimpleRestRouter extends RouteBuilder {
                         .convertBodyTo(String.class)
 
                         .otherwise()
-                        .setHeader(Constants.ROUTE_ID_HEADER,constant(Constants.DIRECT_ROUTE_PREFIX + api.getContext() + path.getPath() + "-" + path.getVerb()))
+                        .setHeader(Constants.ROUTE_ID_HEADER,constant(api.getContext() + path.getPath() + "-" + path.getVerb()))
                         .toF(Constants.FAIL_REST_ENDPOINT_OBJECT, apiGatewayErrorEndpoint)
                         .removeHeader(Constants.REASON_CODE_HEADER)
                         .removeHeader(Constants.REASON_MESSAGE_HEADER)
+                        .removeHeader(Constants.ROUTE_ID_HEADER)
                         .log("ERROR on " + api.getName() + ": ${body}")
                         .convertBodyTo(String.class)
                         .end()
                         .setId(Constants.DIRECT_ROUTE_PREFIX + api.getContext() + path.getPath() + "-" + path.getVerb());
+
             } else {
                 from("direct:" + api.getContext() + path.getPath() + "-" + path.getVerb())
                         .streamCaching()
                         .onException(HttpHostConnectException.class)
                             .setHeader(Constants.REASON_CODE_HEADER, constant(HttpStatus.SERVICE_UNAVAILABLE.value()))
                             .setHeader(Constants.REASON_MESSAGE_HEADER, constant("API NOT AVAILABLE"))
+                            .setHeader(Constants.ROUTE_ID_HEADER,constant(api.getContext() + path.getPath() + "-" + path.getVerb()))
                             .continued(true)
                             .toF(Constants.FAIL_REST_ENDPOINT_OBJECT, apiGatewayErrorEndpoint)
                             .removeHeader(Constants.REASON_CODE_HEADER)
                             .removeHeader(Constants.REASON_MESSAGE_HEADER)
+                            .removeHeader(Constants.ROUTE_ID_HEADER)
                             .end()
                         .toF(Constants.REST_ENDPOINT_OBJECT, (api.getEndpoint() + path.getPath()))
                         .log("Response from "+ api.getName() + ": ${body}")
@@ -94,6 +104,8 @@ public class SimpleRestRouter extends RouteBuilder {
                         .end()
                         .setId(Constants.DIRECT_ROUTE_PREFIX + api.getContext() + path.getPath() + "-" + path.getVerb());
             }
+
+            runningApiManager.runApi(api.getContext() + path.getPath() + "-" + path.getVerb(), api.getId(), path);
 
             switch(path.getVerb()) {
                 case GET:

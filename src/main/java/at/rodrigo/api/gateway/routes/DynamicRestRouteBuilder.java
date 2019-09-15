@@ -1,5 +1,6 @@
 package at.rodrigo.api.gateway.routes;
 
+import at.rodrigo.api.gateway.cache.RunningApiManager;
 import at.rodrigo.api.gateway.entity.Api;
 import at.rodrigo.api.gateway.entity.Path;
 import at.rodrigo.api.gateway.processor.AuthProcessor;
@@ -8,6 +9,7 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.apache.http.conn.HttpHostConnectException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
 public class DynamicRestRouteBuilder extends RouteBuilder {
@@ -16,10 +18,13 @@ public class DynamicRestRouteBuilder extends RouteBuilder {
     private AuthProcessor authProcessor;
     private String apiGatewayErrorEndpoint;
 
-    public DynamicRestRouteBuilder(CamelContext context, AuthProcessor authProcessor, String apiGatewayErrorEndpoint, Api api) {
+    private RunningApiManager runningApiManager;
+
+    public DynamicRestRouteBuilder(CamelContext context, AuthProcessor authProcessor, RunningApiManager runningApiManager, String apiGatewayErrorEndpoint, Api api) {
         super(context);
         this.api = api;
         this.authProcessor = authProcessor;
+        this.runningApiManager = runningApiManager;
         this.apiGatewayErrorEndpoint = apiGatewayErrorEndpoint;
     }
 
@@ -32,11 +37,13 @@ public class DynamicRestRouteBuilder extends RouteBuilder {
                         .onException(HttpHostConnectException.class)
                         .setHeader(Constants.REASON_CODE_HEADER, constant(HttpStatus.SERVICE_UNAVAILABLE.value()))
                         .setHeader(Constants.REASON_MESSAGE_HEADER, constant("API NOT AVAILABLE"))
+                        .setHeader(Constants.ROUTE_ID_HEADER,constant(api.getContext() + path.getPath() + "-" + path.getVerb()))
                         .removeHeader(Constants.VALID_HEADER)
                         .continued(true)
                         .toF(Constants.FAIL_REST_ENDPOINT_OBJECT, apiGatewayErrorEndpoint)
                         .removeHeader(Constants.REASON_CODE_HEADER)
                         .removeHeader(Constants.REASON_MESSAGE_HEADER)
+                        .removeHeader(Constants.ROUTE_ID_HEADER)
                         .end()
                         .setHeader(Constants.JSON_WEB_KEY_SIGNATURE_ENDPOINT_HEADER, constant(api.getJwsEndpoint()))
                         .setHeader(Constants.BLOCK_IF_IN_ERROR_HEADER, constant(path.isBlockIfInError()))
@@ -50,10 +57,11 @@ public class DynamicRestRouteBuilder extends RouteBuilder {
                         .convertBodyTo(String.class)
 
                         .otherwise()
-                        .setHeader(Constants.ROUTE_ID_HEADER,constant(Constants.DIRECT_ROUTE_PREFIX + api.getContext() + path.getPath() + "-" + path.getVerb()))
+                        .setHeader(Constants.ROUTE_ID_HEADER,constant(api.getContext() + path.getPath() + "-" + path.getVerb()))
                         .toF(Constants.FAIL_REST_ENDPOINT_OBJECT, apiGatewayErrorEndpoint)
                         .removeHeader(Constants.REASON_CODE_HEADER)
                         .removeHeader(Constants.REASON_MESSAGE_HEADER)
+                        .removeHeader(Constants.ROUTE_ID_HEADER)
                         .log("ERROR on " + api.getName() + ": ${body}")
                         .convertBodyTo(String.class)
                         .end()
@@ -64,10 +72,12 @@ public class DynamicRestRouteBuilder extends RouteBuilder {
                         .onException(HttpHostConnectException.class)
                         .setHeader(Constants.REASON_CODE_HEADER, constant(HttpStatus.SERVICE_UNAVAILABLE.value()))
                         .setHeader(Constants.REASON_MESSAGE_HEADER, constant("API NOT AVAILABLE"))
+                        .setHeader(Constants.ROUTE_ID_HEADER,constant(api.getContext() + path.getPath() + "-" + path.getVerb()))
                         .continued(true)
                         .toF(Constants.FAIL_REST_ENDPOINT_OBJECT, apiGatewayErrorEndpoint)
                         .removeHeader(Constants.REASON_CODE_HEADER)
                         .removeHeader(Constants.REASON_MESSAGE_HEADER)
+                        .removeHeader(Constants.ROUTE_ID_HEADER)
                         .end()
                         .toF(Constants.REST_ENDPOINT_OBJECT, (api.getEndpoint() + path.getPath()))
                         .log("Response from "+ api.getName() + ": ${body}")
@@ -76,6 +86,8 @@ public class DynamicRestRouteBuilder extends RouteBuilder {
                         .end()
                         .setId(Constants.DIRECT_ROUTE_PREFIX + api.getContext() + path.getPath() + "-" + path.getVerb());
             }
+
+            runningApiManager.runApi(api.getContext() + path.getPath() + "-" + path.getVerb(), api.getId(), path);
 
             switch(path.getVerb()) {
                 case GET:

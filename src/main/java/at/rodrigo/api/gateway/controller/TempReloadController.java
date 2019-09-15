@@ -1,5 +1,6 @@
 package at.rodrigo.api.gateway.controller;
 
+import at.rodrigo.api.gateway.cache.RunningApiManager;
 import at.rodrigo.api.gateway.entity.Api;
 import at.rodrigo.api.gateway.processor.AuthProcessor;
 import at.rodrigo.api.gateway.routes.DynamicRestRouteBuilder;
@@ -31,7 +32,7 @@ public class TempReloadController {
     CamelContext camelContext;
 
     @Autowired
-    SimpleRestRouter restRouter;
+    RunningApiManager runningApiManager;
 
     @RequestMapping( path="/reload/{context}/{path}/{verb}", method= RequestMethod.DELETE)
     public ResponseEntity<String> get(@PathVariable String context, @PathVariable String path, @PathVariable String verb, HttpServletRequest request) {
@@ -61,23 +62,23 @@ public class TempReloadController {
         result.put("directRoute", directRouteId);
         result.put("restRoute", restRouteId);
 
-        return new ResponseEntity<String>(result.toString(), HttpStatus.OK);
+        return new ResponseEntity<>(result.toString(), HttpStatus.OK);
     }
 
     @RequestMapping( path="/reload", method= RequestMethod.POST)
     public ResponseEntity<String> get(@RequestBody Api api, HttpServletRequest request) {
         JSONObject result = new JSONObject();
         try {
-            camelContext.addRoutes(new DynamicRestRouteBuilder(camelContext, authProcessor, apiGatewayErrorEndpoint, api));
+            camelContext.addRoutes(new DynamicRestRouteBuilder(camelContext, authProcessor, runningApiManager, apiGatewayErrorEndpoint, api));
             result.put("result", "created");
         } catch (Exception e) {
             result.put("result", "error");
             result.put("api", api);
             e.printStackTrace();
-            return new ResponseEntity<String>(result.toString(), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(result.toString(), HttpStatus.BAD_REQUEST);
         }
         result.put("api", api);
-        return new ResponseEntity<String>(result.toString(), HttpStatus.OK);
+        return new ResponseEntity<>(result.toString(), HttpStatus.OK);
     }
 
 
