@@ -11,6 +11,7 @@ import org.apache.camel.model.dataformat.JsonLibrary;
 import org.apache.http.conn.HttpHostConnectException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -47,11 +48,13 @@ public class SimpleRestRouter extends RouteBuilder {
                 from("direct:" + api.getContext() + path.getPath() + "-" + path.getVerb())
                         .streamCaching()
                         .onException(HttpHostConnectException.class)
-                            .setHeader(Constants.REASON_HEADER, constant("503"))
+                            .setHeader(Constants.REASON_CODE_HEADER, constant(HttpStatus.SERVICE_UNAVAILABLE.value()))
+                            .setHeader(Constants.REASON_MESSAGE_HEADER, constant("API NOT AVAILABLE"))
                             .removeHeader(Constants.VALID_HEADER)
                             .continued(true)
                             .toF(Constants.FAIL_REST_ENDPOINT_OBJECT, apiGatewayErrorEndpoint)
-                            .removeHeader(Constants.REASON_HEADER)
+                            .removeHeader(Constants.REASON_CODE_HEADER)
+                            .removeHeader(Constants.REASON_MESSAGE_HEADER)
                             .end()
                         .setHeader(Constants.JSON_WEB_KEY_SIGNATURE_ENDPOINT_HEADER, constant(api.getJwsEndpoint()))
                         .setHeader(Constants.BLOCK_IF_IN_ERROR_HEADER, constant(path.isBlockIfInError()))
@@ -67,6 +70,8 @@ public class SimpleRestRouter extends RouteBuilder {
                         .otherwise()
                         .setHeader(Constants.ROUTE_ID_HEADER,constant(Constants.DIRECT_ROUTE_PREFIX + api.getContext() + path.getPath() + "-" + path.getVerb()))
                         .toF(Constants.FAIL_REST_ENDPOINT_OBJECT, apiGatewayErrorEndpoint)
+                        .removeHeader(Constants.REASON_CODE_HEADER)
+                        .removeHeader(Constants.REASON_MESSAGE_HEADER)
                         .log("ERROR on " + api.getName() + ": ${body}")
                         .convertBodyTo(String.class)
                         .end()
@@ -75,10 +80,12 @@ public class SimpleRestRouter extends RouteBuilder {
                 from("direct:" + api.getContext() + path.getPath() + "-" + path.getVerb())
                         .streamCaching()
                         .onException(HttpHostConnectException.class)
-                            .setHeader(Constants.REASON_HEADER, constant("503"))
+                            .setHeader(Constants.REASON_CODE_HEADER, constant(HttpStatus.SERVICE_UNAVAILABLE.value()))
+                            .setHeader(Constants.REASON_MESSAGE_HEADER, constant("API NOT AVAILABLE"))
                             .continued(true)
                             .toF(Constants.FAIL_REST_ENDPOINT_OBJECT, apiGatewayErrorEndpoint)
-                            .removeHeader(Constants.REASON_HEADER)
+                            .removeHeader(Constants.REASON_CODE_HEADER)
+                            .removeHeader(Constants.REASON_MESSAGE_HEADER)
                             .end()
                         .toF(Constants.REST_ENDPOINT_OBJECT, (api.getEndpoint() + path.getPath()))
                         .log("Response from "+ api.getName() + ": ${body}")

@@ -8,6 +8,7 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.apache.http.conn.HttpHostConnectException;
+import org.springframework.http.HttpStatus;
 
 public class DynamicRestRouteBuilder extends RouteBuilder {
 
@@ -29,12 +30,14 @@ public class DynamicRestRouteBuilder extends RouteBuilder {
                 from("direct:" + api.getContext() + path.getPath() + "-" + path.getVerb())
                         .streamCaching()
                         .onException(HttpHostConnectException.class)
-                            .setHeader(Constants.REASON_HEADER, constant("503"))
-                            .removeHeader(Constants.VALID_HEADER)
-                            .continued(true)
-                            .toF(Constants.FAIL_REST_ENDPOINT_OBJECT, apiGatewayErrorEndpoint)
-                            .removeHeader(Constants.REASON_HEADER)
-                            .end()
+                        .setHeader(Constants.REASON_CODE_HEADER, constant(HttpStatus.SERVICE_UNAVAILABLE.value()))
+                        .setHeader(Constants.REASON_MESSAGE_HEADER, constant("API NOT AVAILABLE"))
+                        .removeHeader(Constants.VALID_HEADER)
+                        .continued(true)
+                        .toF(Constants.FAIL_REST_ENDPOINT_OBJECT, apiGatewayErrorEndpoint)
+                        .removeHeader(Constants.REASON_CODE_HEADER)
+                        .removeHeader(Constants.REASON_MESSAGE_HEADER)
+                        .end()
                         .setHeader(Constants.JSON_WEB_KEY_SIGNATURE_ENDPOINT_HEADER, constant(api.getJwsEndpoint()))
                         .setHeader(Constants.BLOCK_IF_IN_ERROR_HEADER, constant(path.isBlockIfInError()))
                         .process(authProcessor)
@@ -49,6 +52,8 @@ public class DynamicRestRouteBuilder extends RouteBuilder {
                         .otherwise()
                         .setHeader(Constants.ROUTE_ID_HEADER,constant(Constants.DIRECT_ROUTE_PREFIX + api.getContext() + path.getPath() + "-" + path.getVerb()))
                         .toF(Constants.FAIL_REST_ENDPOINT_OBJECT, apiGatewayErrorEndpoint)
+                        .removeHeader(Constants.REASON_CODE_HEADER)
+                        .removeHeader(Constants.REASON_MESSAGE_HEADER)
                         .log("ERROR on " + api.getName() + ": ${body}")
                         .convertBodyTo(String.class)
                         .end()
@@ -57,11 +62,13 @@ public class DynamicRestRouteBuilder extends RouteBuilder {
                 from("direct:" + api.getContext() + path.getPath() + "-" + path.getVerb())
                         .streamCaching()
                         .onException(HttpHostConnectException.class)
-                            .setHeader(Constants.REASON_HEADER, constant("503"))
-                            .continued(true)
-                            .toF(Constants.FAIL_REST_ENDPOINT_OBJECT, apiGatewayErrorEndpoint)
-                            .removeHeader(Constants.REASON_HEADER)
-                            .end()
+                        .setHeader(Constants.REASON_CODE_HEADER, constant(HttpStatus.SERVICE_UNAVAILABLE.value()))
+                        .setHeader(Constants.REASON_MESSAGE_HEADER, constant("API NOT AVAILABLE"))
+                        .continued(true)
+                        .toF(Constants.FAIL_REST_ENDPOINT_OBJECT, apiGatewayErrorEndpoint)
+                        .removeHeader(Constants.REASON_CODE_HEADER)
+                        .removeHeader(Constants.REASON_MESSAGE_HEADER)
+                        .end()
                         .toF(Constants.REST_ENDPOINT_OBJECT, (api.getEndpoint() + path.getPath()))
                         .log("Response from "+ api.getName() + ": ${body}")
                         .convertBodyTo(String.class)
@@ -107,6 +114,17 @@ public class DynamicRestRouteBuilder extends RouteBuilder {
                             .end()
                             .setId(Constants.REST_ROUTE_PREFIX + api.getContext() + path.getPath() + "-" + path.getVerb());
                     break;
+                case DELETE:
+                    rest()
+                            .delete("/" + api.getContext() + path.getPath()).enableCORS(true)
+                            .route()
+                            .to("direct:" + api.getContext() + path.getPath() + "-" + path.getVerb())
+                            .streamCaching()
+                            .end()
+                            .marshal().json(JsonLibrary.Jackson)
+                            .convertBodyTo(String.class)
+                            .end()
+                            .setId(Constants.REST_ROUTE_PREFIX + api.getContext() + path.getPath() + "-" + path.getVerb());
             }
         }
 

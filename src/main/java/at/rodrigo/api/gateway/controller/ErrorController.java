@@ -38,15 +38,19 @@ public class ErrorController {
     private ResponseEntity<String> buildResponse(HttpServletRequest request) {
         JSONObject result = new JSONObject();
 
-        if(request.getHeader(Constants.REASON_HEADER) != null && request.getHeader(Constants.REASON_HEADER).equals("503")) {
-            result.put("error", "API not available");
-            return new ResponseEntity<>(result.toString(), HttpStatus.SERVICE_UNAVAILABLE);
+        try {
+            if(request.getHeader(Constants.REASON_CODE_HEADER) != null && request.getHeader(Constants.REASON_MESSAGE_HEADER) != null) {
+                result.put("error", request.getHeader(Constants.REASON_MESSAGE_HEADER));
+                int returnedCode = Integer.parseInt(request.getHeader(Constants.REASON_CODE_HEADER));
+                return new ResponseEntity<>(result.toString(), HttpStatus.valueOf(returnedCode));
+            } else {
+                result.put("error", "Bad request");
+                //log.info(request.getHeader("routeId"));
+                return new ResponseEntity<>(result.toString(), HttpStatus.BAD_REQUEST);
+            }
+        } catch (Exception e) {
+            result.put("error", e.getMessage());
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-
-        result.put("error", "Bad request");
-        log.info(request.getHeader("routeId"));
-        return new ResponseEntity<>(result.toString(), HttpStatus.BAD_REQUEST);
     }
-
-
 }

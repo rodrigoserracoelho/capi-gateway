@@ -14,9 +14,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import java.net.URL;
+import java.text.ParseException;
 
 
 @Component
@@ -34,9 +36,8 @@ public class AuthProcessor implements Processor {
             exchange.getIn().removeHeader(Constants.JSON_WEB_KEY_SIGNATURE_ENDPOINT_HEADER);
             exchange.getIn().removeHeader(Constants.AUTHORIZATION_HEADER);
             exchange.getIn().removeHeader(Constants.BLOCK_IF_IN_ERROR_HEADER);
-//authorizationHeader.substring("Bearer ".length()) : null;
+            //authorizationHeader.substring("Bearer ".length()) : null;
             if(jwtKeysEndpoint != null && jwtToken != null) {
-            //try {
                 ConfigurableJWTProcessor jwtProcessor = new DefaultJWTProcessor();
                 JWKSource keySource = new RemoteJWKSet(new URL(jwtKeysEndpoint));
                 JWSAlgorithm expectedJWSAlg = jwsChecker.getAlgorithm(jwtToken);
@@ -46,12 +47,19 @@ public class AuthProcessor implements Processor {
                 if(claimsSet != null) {
                     exchange.getIn().setHeader("VALID", true);
                 }
+            } else {
+                exchange.getIn().setHeader(Constants.REASON_CODE_HEADER, HttpStatus.BAD_REQUEST.value());
+                exchange.getIn().setHeader(Constants.REASON_MESSAGE_HEADER, "Invalid token was provided");
+                exchange.setException(null);
             }
+        } catch(ParseException pex) {
+            exchange.getIn().setHeader(Constants.REASON_CODE_HEADER, HttpStatus.BAD_REQUEST.value());
+            exchange.getIn().setHeader(Constants.REASON_MESSAGE_HEADER, "Invalid token was provided");
+            exchange.setException(null);
         } catch(Exception e) {
-            log.info(e.getClass().getCanonicalName());
-            log.info("--------------------| "+ e.getMessage());
-exchange.setException(null);
-
+            exchange.getIn().setHeader(Constants.REASON_CODE_HEADER, HttpStatus.FORBIDDEN.value());
+            exchange.getIn().setHeader(Constants.REASON_MESSAGE_HEADER, e.getMessage());
+            exchange.setException(null);
         }
     }
 }
