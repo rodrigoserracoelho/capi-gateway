@@ -144,6 +144,9 @@ public class SimpleRestRouter extends RouteBuilder {
                             .end()
                             .setId(Constants.REST_ROUTE_PREFIX + api.getContext() + path.getPath() + "-" + path.getVerb());
                     break;
+                default:
+                    log.error("PATH NOT AVAILABLE: " + path.getVerb());
+                    break;
             }
         }
     }

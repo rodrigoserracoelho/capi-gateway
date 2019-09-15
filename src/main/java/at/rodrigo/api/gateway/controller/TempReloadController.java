@@ -50,7 +50,7 @@ public class TempReloadController {
                 camelContext.removeRoute(restRouteId);
 
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error(e.getMessage(), e);
             }
         } else {
             log.info("Route does not exist: {}" , directRouteId);
@@ -58,7 +58,7 @@ public class TempReloadController {
 
 
         JSONObject result = new JSONObject();
-        result.put("result", "removed");
+        result.put(Constants.RESULT, "removed");
         result.put("directRoute", directRouteId);
         result.put("restRoute", restRouteId);
 
@@ -70,14 +70,14 @@ public class TempReloadController {
         JSONObject result = new JSONObject();
         try {
             camelContext.addRoutes(new DynamicRestRouteBuilder(camelContext, authProcessor, runningApiManager, apiGatewayErrorEndpoint, api));
-            result.put("result", "created");
+            result.put(Constants.RESULT, "created");
         } catch (Exception e) {
-            result.put("result", "error");
-            result.put("api", api);
-            e.printStackTrace();
+            result.put(Constants.RESULT, "error");
+            result.put(Constants.API, api);
+            log.error(e.getMessage(), e);
             return new ResponseEntity<>(result.toString(), HttpStatus.BAD_REQUEST);
         }
-        result.put("api", api);
+        result.put(Constants.API, api);
         return new ResponseEntity<>(result.toString(), HttpStatus.OK);
     }
 

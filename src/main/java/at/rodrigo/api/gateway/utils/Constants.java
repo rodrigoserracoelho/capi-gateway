@@ -13,4 +13,7 @@ public class Constants {
     public static final String REASON_CODE_HEADER = "error-reason-code";
     public static final String REASON_MESSAGE_HEADER = "error-reason-message";
     public static final String ROUTE_ID_HEADER = "routeID";
+    public static final String ERROR = "error";
+    public static final String RESULT = "result";
+    public static final String API = "api";
 }

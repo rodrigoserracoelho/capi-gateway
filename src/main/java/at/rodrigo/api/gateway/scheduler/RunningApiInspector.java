@@ -23,7 +23,6 @@ public class RunningApiInspector {
 
     @Scheduled(fixedRate = 60000)
     public void checkDisabledRunningApis() {
-        log.info("IM RUNNING....................");
         List<RunningApi> disabledRunningApis = runningApiManager.getDisabledRunningApis();
         for(RunningApi runningApi : disabledRunningApis) {
             removeRoute(runningApi.getDirectRouteId(), runningApi.getRestRouteId());
@@ -41,7 +40,7 @@ public class RunningApiInspector {
                 camelContext.removeRoute(restRouteId);
 
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error(e.getMessage(), e);
             }
         } else {
             log.info("Route does not exist: {}" , directRouteId);

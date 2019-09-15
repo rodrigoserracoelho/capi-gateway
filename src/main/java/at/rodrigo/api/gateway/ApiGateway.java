@@ -9,7 +9,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class ApiGateway {
 
     public static void main(String[] args) {
-        SpringApplication.run(ApiGateway.class, args);
+        SpringApplication.run(ApiGateway.class);
     }
 
 

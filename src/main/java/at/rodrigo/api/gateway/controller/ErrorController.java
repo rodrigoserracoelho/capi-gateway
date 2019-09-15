@@ -43,7 +43,7 @@ public class ErrorController {
     private ResponseEntity<String> buildResponse(HttpServletRequest request) {
         JSONObject result = new JSONObject();
 
-        String routeId = request.getHeader("routeId");
+        String routeId = request.getHeader(Constants.ROUTE_ID_HEADER);
         if(routeId != null && runningApiManager.blockApi(routeId)) {
             log.info("will block api");
         } else {
@@ -52,15 +52,15 @@ public class ErrorController {
 
         try {
             if(request.getHeader(Constants.REASON_CODE_HEADER) != null && request.getHeader(Constants.REASON_MESSAGE_HEADER) != null) {
-                result.put("error", request.getHeader(Constants.REASON_MESSAGE_HEADER));
+                result.put(Constants.ERROR, request.getHeader(Constants.REASON_MESSAGE_HEADER));
                 int returnedCode = Integer.parseInt(request.getHeader(Constants.REASON_CODE_HEADER));
                 return new ResponseEntity<>(result.toString(), HttpStatus.valueOf(returnedCode));
             } else {
-                result.put("error", "Bad request");
+                result.put(Constants.ERROR, "Bad request");
                 return new ResponseEntity<>(result.toString(), HttpStatus.BAD_REQUEST);
             }
         } catch (Exception e) {
-            result.put("error", e.getMessage());
+            result.put(Constants.ERROR, e.getMessage());
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
