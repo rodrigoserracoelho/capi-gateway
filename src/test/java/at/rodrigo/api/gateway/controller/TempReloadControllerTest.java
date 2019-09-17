@@ -2,31 +2,37 @@ package at.rodrigo.api.gateway.controller;
 
 import at.rodrigo.api.gateway.cache.RunningApiManager;
 import at.rodrigo.api.gateway.entity.Api;
+import at.rodrigo.api.gateway.entity.Path;
+import at.rodrigo.api.gateway.entity.Verb;
 import at.rodrigo.api.gateway.processor.AuthProcessor;
+import com.hazelcast.test.TestHazelcastInstanceFactory;
 import org.apache.camel.CamelContext;
+import org.apache.camel.impl.DefaultCamelContext;
+import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 class TempReloadControllerTest {
 
-    @Mock
-    private AuthProcessor mockAuthProcessor;
-    @Mock
-    private CamelContext mockCamelContext;
-    @Mock
-    private RunningApiManager mockRunningApiManager;
+    protected CamelContext camelContext = new DefaultCamelContext();
 
-    @InjectMocks
-    private TempReloadController tempReloadControllerUnderTest;
+    private AuthProcessor authProcessor = new AuthProcessor();
+
+    private RunningApiManager runningApiManager = new RunningApiManager();
+
+    private static TestHazelcastInstanceFactory testInstanceFactory = new TestHazelcastInstanceFactory();
 
     @BeforeEach
     void setUp() {
@@ -34,70 +40,43 @@ class TempReloadControllerTest {
     }
 
     @Test
-    void testGet() throws Exception {
-        // Setup
-        final String context = "context";
-        final String path = "path";
-        final String verb = "verb";
-        final HttpServletRequest request = null;
-        final ResponseEntity<String> expectedResult = null;
-        when(mockCamelContext.getRoute("id")).thenReturn(null);
-        when(mockCamelContext.getRouteController()).thenReturn(null);
-        when(mockCamelContext.removeRoute("routeId")).thenReturn(false);
+    void testPost() throws Exception {
+
+        Api api = new Api();
+        api.setEndpoint("localhost:9010");
+        api.setName("ROD-UNSAFE-API");
+        api.setSecured(false);
+        api.setContext("super-unsafe");
+        api.setId(UUID.randomUUID().toString());
+
+        Path path = new Path();
+        path.setPath("/internal");
+        path.setVerb(Verb.GET);
+        path.setBlockIfInError(false);
+        path.setMaxAllowedFailedCalls(-1);
+        List<Path> apiPathList = new ArrayList<>();
+        apiPathList.add(path);
+        api.setPaths(apiPathList);
+
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+        TempReloadController tempReloadControllerUnderTest = new TempReloadController();
+
+        ReflectionTestUtils.setField(runningApiManager, "hazelcastInstance", testInstanceFactory.newHazelcastInstance());
+        ReflectionTestUtils.setField(tempReloadControllerUnderTest, "runningApiManager", runningApiManager);
+        ReflectionTestUtils.setField(tempReloadControllerUnderTest, "camelContext", camelContext);
+        ReflectionTestUtils.setField(tempReloadControllerUnderTest, "authProcessor", authProcessor);
+        ReflectionTestUtils.setField(tempReloadControllerUnderTest, "apiGatewayErrorEndpoint", "localhost:8380/error");
+
+        JSONObject result = new JSONObject();
+        result.put("result", "created");
+        result.put("api", api);
+
+        final ResponseEntity<String> expectedResult = new ResponseEntity<>(result.toString(), HttpStatus.OK);
 
         // Run the test
-        final ResponseEntity<String> result = tempReloadControllerUnderTest.get(context, path, verb, request);
+        ResponseEntity<String> responseResult = tempReloadControllerUnderTest.post(api, request);
 
         // Verify the results
-        assertEquals(expectedResult, result);
-    }
-
-    @Test
-    void testGet_CamelContextThrowsException() throws Exception {
-        // Setup
-        final String context = "context";
-        final String path = "path";
-        final String verb = "verb";
-        final HttpServletRequest request = null;
-        final ResponseEntity<String> expectedResult = null;
-        when(mockCamelContext.getRoute("id")).thenReturn(null);
-        when(mockCamelContext.getRouteController()).thenReturn(null);
-        when(mockCamelContext.removeRoute("routeId")).thenThrow(Exception.class);
-
-        // Run the test
-        final ResponseEntity<String> result = tempReloadControllerUnderTest.get(context, path, verb, request);
-
-        // Verify the results
-        assertEquals(expectedResult, result);
-    }
-
-    @Test
-    void testGet1() throws Exception {
-        // Setup
-        final Api api = null;
-        final HttpServletRequest request = null;
-        final ResponseEntity<String> expectedResult = null;
-
-        // Run the test
-        final ResponseEntity<String> result = tempReloadControllerUnderTest.get(api, request);
-
-        // Verify the results
-        assertEquals(expectedResult, result);
-        verify(mockCamelContext).addRoutes(null);
-    }
-
-    @Test
-    void testGet_CamelContextThrowsException1() throws Exception {
-        // Setup
-        final Api api = null;
-        final HttpServletRequest request = null;
-        final ResponseEntity<String> expectedResult = null;
-        doThrow(Exception.class).when(mockCamelContext).addRoutes(null);
-
-        // Run the test
-        final ResponseEntity<String> result = tempReloadControllerUnderTest.get(api, request);
-
-        // Verify the results
-        assertEquals(expectedResult, result);
+        assertEquals(expectedResult, responseResult);
     }
 }

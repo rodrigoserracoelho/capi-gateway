@@ -28,7 +28,7 @@ public class AuthProcessor implements Processor {
    @Autowired
    private JWSChecker jwsChecker;
 
-    public void process(Exchange exchange) throws Exception {
+    public void process(Exchange exchange) {
         exchange.getIn().setHeader("VALID", false);
         try {
             String jwtKeysEndpoint = exchange.getIn().getHeader(Constants.JSON_WEB_KEY_SIGNATURE_ENDPOINT_HEADER).toString();

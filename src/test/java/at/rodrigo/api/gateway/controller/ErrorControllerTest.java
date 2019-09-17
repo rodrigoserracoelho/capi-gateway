@@ -32,7 +32,7 @@ class ErrorControllerTest {
     void testGet() {
         // Setup
         final HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-        final ResponseEntity<String> expectedResult = new ResponseEntity<>(HttpStatus.OK);
+        final ResponseEntity<String> expectedResult = new ResponseEntity<>("{\"error\":\"Bad request\"}", HttpStatus.BAD_REQUEST);
         when(mockRunningApiManager.blockApi("routeId")).thenReturn(false);
 
         // Run the test
@@ -46,7 +46,7 @@ class ErrorControllerTest {
     void testPost() {
         // Setup
         final HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-        final ResponseEntity<String> expectedResult = new ResponseEntity<>(HttpStatus.OK);
+        final ResponseEntity<String> expectedResult = new ResponseEntity<>("{\"error\":\"Bad request\"}", HttpStatus.BAD_REQUEST);
         when(mockRunningApiManager.blockApi("routeId")).thenReturn(false);
 
         // Run the test
@@ -60,7 +60,7 @@ class ErrorControllerTest {
     void testPut() {
         // Setup
         final HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-        final ResponseEntity<String> expectedResult = new ResponseEntity<>(HttpStatus.OK);
+        final ResponseEntity<String> expectedResult = new ResponseEntity<>("{\"error\":\"Bad request\"}", HttpStatus.BAD_REQUEST);
         when(mockRunningApiManager.blockApi("routeId")).thenReturn(false);
 
         // Run the test
@@ -74,7 +74,7 @@ class ErrorControllerTest {
     void testDelete() {
         // Setup
         final HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-        final ResponseEntity<String> expectedResult = new ResponseEntity<>(HttpStatus.OK);
+        final ResponseEntity<String> expectedResult = new ResponseEntity<>("{\"error\":\"Bad request\"}", HttpStatus.BAD_REQUEST);
         when(mockRunningApiManager.blockApi("routeId")).thenReturn(false);
 
         // Run the test

@@ -32,14 +32,20 @@ public class SimpleRestRouter extends RouteBuilder {
     @Autowired
     private RunningApiManager runningApiManager;
 
+    private Api[] apiList;
+
+    @Autowired
+    private RestTemplate restTemplate;
+
 
     @Override
     public void configure() {
 
         log.info("Starting configuration of Dynamic Routes");
 
-        RestTemplate restTemplate = new RestTemplate();
-        Api[] apiList = restTemplate.getForObject(apiGatewayRestEndpoint, Api[].class);
+        if(apiList == null) {
+            apiList = restTemplate.getForObject(apiGatewayRestEndpoint, Api[].class);
+        }
 
         for(Api api : apiList) {
             addRoute(api);

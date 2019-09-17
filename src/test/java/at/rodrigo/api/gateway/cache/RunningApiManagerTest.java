@@ -2,70 +2,90 @@ package at.rodrigo.api.gateway.cache;
 
 import at.rodrigo.api.gateway.entity.Path;
 import at.rodrigo.api.gateway.entity.RunningApi;
-import com.hazelcast.core.HazelcastInstance;
-import org.junit.jupiter.api.BeforeEach;
+import at.rodrigo.api.gateway.entity.Verb;
+import com.hazelcast.test.HazelcastTestSupport;
+import com.hazelcast.test.TestHazelcastInstanceFactory;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
+import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
+import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
-class RunningApiManagerTest {
+class RunningApiManagerTest extends HazelcastTestSupport {
 
-    @Mock
-    private HazelcastInstance mockHazelcastInstance;
-
-    private RunningApiManager runningApiManagerUnderTest = Mockito.mock(RunningApiManager.class);
-
-    @BeforeEach
-    void setUp() {
-        initMocks(this);
-    }
+    private static TestHazelcastInstanceFactory testInstanceFactory = new TestHazelcastInstanceFactory();
 
     @Test
     void testRunApi() {
         // Setup
-        final String routeId = "routeId";
-        final String apiId = "apiId";
-        final Path path = null;
-        when(mockHazelcastInstance.getMap("s")).thenReturn(null);
+        RunningApiManager runningApiManagerUnderTest = new RunningApiManager();
+        ReflectionTestUtils.setField(runningApiManagerUnderTest, "hazelcastInstance", testInstanceFactory.newHazelcastInstance());
 
-        // Run the test
+        String routeId = "super-unsafe/internal-GET";
+        String apiId = UUID.randomUUID().toString();
+        Path path = new Path();
+        path.setPath("/internal");
+        path.setVerb(Verb.GET);
+        path.setBlockIfInError(true);
+        path.setMaxAllowedFailedCalls(0);
+
+         // Run the test
         runningApiManagerUnderTest.runApi(routeId, apiId, path);
 
         // Verify the results
+        assertNotNull(runningApiManagerUnderTest);
     }
 
     @Test
     void testBlockApi() {
         // Setup
-        final String routeId = "routeId";
-        when(mockHazelcastInstance.getMap("s")).thenReturn(null);
+        RunningApiManager runningApiManagerUnderTest = new RunningApiManager();
+        ReflectionTestUtils.setField(runningApiManagerUnderTest, "hazelcastInstance", testInstanceFactory.newHazelcastInstance());
+
+        final String routeId = "super-unsafe/internal-GET";
+        final String apiId = UUID.randomUUID().toString();
+        final Path path = new Path();
+        path.setPath("/internal");
+        path.setVerb(Verb.GET);
+        path.setBlockIfInError(true);
+        path.setMaxAllowedFailedCalls(0);
+
+        runningApiManagerUnderTest.runApi(routeId, apiId, path);
 
         // Run the test
         final boolean result = runningApiManagerUnderTest.blockApi(routeId);
 
         // Verify the results
         assertTrue(result);
+
     }
 
     @Test
     void testGetDisabledRunningApis() {
         // Setup
-        final List<RunningApi> expectedResult = Arrays.asList();
-        when(mockHazelcastInstance.getMap("s")).thenReturn(null);
+        RunningApiManager runningApiManagerUnderTest = new RunningApiManager();
+        ReflectionTestUtils.setField(runningApiManagerUnderTest, "hazelcastInstance", testInstanceFactory.newHazelcastInstance());
+
+        final String routeId = "super-unsafe/internal-GET";
+        final String apiId = UUID.randomUUID().toString();
+        final Path path = new Path();
+        path.setPath("/internal");
+        path.setVerb(Verb.GET);
+        path.setBlockIfInError(true);
+        path.setMaxAllowedFailedCalls(0);
+
+        runningApiManagerUnderTest.runApi(routeId, apiId, path);
+        runningApiManagerUnderTest.blockApi(routeId);
 
         // Run the test
-        final List<RunningApi> result = runningApiManagerUnderTest.getDisabledRunningApis();
+        List<RunningApi> result = runningApiManagerUnderTest.getDisabledRunningApis();
 
         // Verify the results
-        assertEquals(expectedResult, result);
+        assertEquals("DIRECT-super-unsafe/internal-GET", result.get(0).getDirectRouteId());
     }
+
 }

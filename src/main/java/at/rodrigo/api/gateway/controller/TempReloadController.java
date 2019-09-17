@@ -66,7 +66,7 @@ public class TempReloadController {
     }
 
     @RequestMapping( path="/reload", method= RequestMethod.POST)
-    public ResponseEntity<String> get(@RequestBody Api api, HttpServletRequest request) {
+    public ResponseEntity<String> post(@RequestBody Api api, HttpServletRequest request) {
         JSONObject result = new JSONObject();
         try {
             camelContext.addRoutes(new DynamicRestRouteBuilder(camelContext, authProcessor, runningApiManager, apiGatewayErrorEndpoint, api));

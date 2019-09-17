@@ -9,7 +9,6 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.apache.http.conn.HttpHostConnectException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
 public class DynamicRestRouteBuilder extends RouteBuilder {
@@ -29,7 +28,7 @@ public class DynamicRestRouteBuilder extends RouteBuilder {
     }
 
     @Override
-    public void configure() throws Exception {
+    public void configure() {
         for(Path path : api.getPaths()) {
             if(api.isSecured()) {
                 from("direct:" + api.getContext() + path.getPath() + "-" + path.getVerb())
@@ -143,6 +142,5 @@ public class DynamicRestRouteBuilder extends RouteBuilder {
                     break;
             }
         }
-
     }
 }

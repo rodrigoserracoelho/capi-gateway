@@ -76,4 +76,9 @@ public class RunningApiManager {
         }
         return disabledRunningApis;
     }
+
+    public int count() {
+        return getCachedApi().size();
+    }
+
 }
