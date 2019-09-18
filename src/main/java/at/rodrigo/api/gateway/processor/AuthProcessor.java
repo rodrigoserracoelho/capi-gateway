@@ -36,7 +36,7 @@ public class AuthProcessor implements Processor {
             exchange.getIn().removeHeader(Constants.JSON_WEB_KEY_SIGNATURE_ENDPOINT_HEADER);
             exchange.getIn().removeHeader(Constants.AUTHORIZATION_HEADER);
             exchange.getIn().removeHeader(Constants.BLOCK_IF_IN_ERROR_HEADER);
-            //authorizationHeader.substring("Bearer ".length()) : null;
+
             if(jwtKeysEndpoint != null && jwtToken != null) {
                 ConfigurableJWTProcessor jwtProcessor = new DefaultJWTProcessor();
                 JWKSource keySource = new RemoteJWKSet(new URL(jwtKeysEndpoint));

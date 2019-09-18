@@ -19,4 +19,5 @@ public class ApiGateway {
     RestTemplate restTemplate() {
         return new RestTemplate();
     }
+
 }

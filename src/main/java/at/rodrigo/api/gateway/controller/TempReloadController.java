@@ -4,7 +4,7 @@ import at.rodrigo.api.gateway.cache.RunningApiManager;
 import at.rodrigo.api.gateway.entity.Api;
 import at.rodrigo.api.gateway.processor.AuthProcessor;
 import at.rodrigo.api.gateway.routes.DynamicRestRouteBuilder;
-import at.rodrigo.api.gateway.routes.SimpleRestRouter;
+import at.rodrigo.api.gateway.utils.CamelUtils;
 import at.rodrigo.api.gateway.utils.Constants;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelContext;
@@ -34,8 +34,11 @@ public class TempReloadController {
     @Autowired
     RunningApiManager runningApiManager;
 
-    @RequestMapping( path="/reload/{context}/{path}/{verb}", method= RequestMethod.DELETE)
-    public ResponseEntity<String> get(@PathVariable String context, @PathVariable String path, @PathVariable String verb, HttpServletRequest request) {
+    @Autowired
+    CamelUtils camelUtils;
+
+    @DeleteMapping(path="/reload/{context}/{path}/{verb}")
+    public ResponseEntity<String> delete(@PathVariable String context, @PathVariable String path, @PathVariable String verb, HttpServletRequest request) {
 
         String directRouteId = Constants.DIRECT_ROUTE_PREFIX + context.toLowerCase() + "/" + path.toLowerCase() + "-" + verb.toUpperCase();
         String restRouteId = Constants.REST_ROUTE_PREFIX  + context.toLowerCase() + "/" + path.toLowerCase() + "-" + verb.toUpperCase();
@@ -55,8 +58,6 @@ public class TempReloadController {
         } else {
             log.info("Route does not exist: {}" , directRouteId);
         }
-
-
         JSONObject result = new JSONObject();
         result.put(Constants.RESULT, "removed");
         result.put("directRoute", directRouteId);
@@ -65,11 +66,11 @@ public class TempReloadController {
         return new ResponseEntity<>(result.toString(), HttpStatus.OK);
     }
 
-    @RequestMapping( path="/reload", method= RequestMethod.POST)
-    public ResponseEntity<String> post(@RequestBody Api api, HttpServletRequest request) {
+    @PostMapping(path="/reload")
+    public ResponseEntity<String> post(@RequestBody Api api) {
         JSONObject result = new JSONObject();
         try {
-            camelContext.addRoutes(new DynamicRestRouteBuilder(camelContext, authProcessor, runningApiManager, apiGatewayErrorEndpoint, api));
+            camelContext.addRoutes(new DynamicRestRouteBuilder(camelContext, authProcessor, runningApiManager, camelUtils, apiGatewayErrorEndpoint, api));
             result.put(Constants.RESULT, "created");
         } catch (Exception e) {
             result.put(Constants.RESULT, "error");
@@ -80,8 +81,4 @@ public class TempReloadController {
         result.put(Constants.API, api);
         return new ResponseEntity<>(result.toString(), HttpStatus.OK);
     }
-
-
-
-
 }

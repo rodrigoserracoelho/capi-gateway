@@ -5,9 +5,11 @@ import at.rodrigo.api.gateway.cache.RunningApiManager;
 import at.rodrigo.api.gateway.entity.Api;
 import at.rodrigo.api.gateway.entity.Path;
 import at.rodrigo.api.gateway.processor.AuthProcessor;
+import at.rodrigo.api.gateway.utils.CamelUtils;
 import at.rodrigo.api.gateway.utils.Constants;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.model.ProcessDefinition;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.apache.http.conn.HttpHostConnectException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-@Component
+//@Component
 @Slf4j
 public class SimpleRestRouter extends RouteBuilder {
 
@@ -31,6 +33,9 @@ public class SimpleRestRouter extends RouteBuilder {
 
     @Autowired
     private RunningApiManager runningApiManager;
+
+    @Autowired
+    private CamelUtils camelUtils;
 
     private Api[] apiList;
 
@@ -55,7 +60,7 @@ public class SimpleRestRouter extends RouteBuilder {
     public void addRoute(Api api) {
         for(Path path : api.getPaths()) {
             if(api.isSecured()) {
-                from("direct:" + api.getContext() + path.getPath() + "-" + path.getVerb())
+                from(camelUtils.buildDirectRoute(api, path))
                         .streamCaching()
                         .onException(HttpHostConnectException.class)
                             .setHeader(Constants.REASON_CODE_HEADER, constant(HttpStatus.SERVICE_UNAVAILABLE.value()))
@@ -74,7 +79,7 @@ public class SimpleRestRouter extends RouteBuilder {
 
                         .choice()
                         .when(simple("${in.headers.valid} == true"))
-                        .toF(Constants.REST_ENDPOINT_OBJECT, (api.getEndpoint() + path.getPath()))
+                        .toF(camelUtils.getCamelHttpEndpoint(api), (api.getEndpoint() + path.getPath()))
                         .removeHeader(Constants.VALID_HEADER)
                         .log("Response from " + api.getName() + ": ${body}")
                         .convertBodyTo(String.class)
@@ -88,10 +93,10 @@ public class SimpleRestRouter extends RouteBuilder {
                         .log("ERROR on " + api.getName() + ": ${body}")
                         .convertBodyTo(String.class)
                         .end()
-                        .setId(Constants.DIRECT_ROUTE_PREFIX + api.getContext() + path.getPath() + "-" + path.getVerb());
+                        .setId(camelUtils.buildDirectRouteID(api, path));
 
             } else {
-                from("direct:" + api.getContext() + path.getPath() + "-" + path.getVerb())
+                from(camelUtils.buildDirectRoute(api, path))
                         .streamCaching()
                         .onException(HttpHostConnectException.class)
                             .setHeader(Constants.REASON_CODE_HEADER, constant(HttpStatus.SERVICE_UNAVAILABLE.value()))
@@ -103,12 +108,12 @@ public class SimpleRestRouter extends RouteBuilder {
                             .removeHeader(Constants.REASON_MESSAGE_HEADER)
                             .removeHeader(Constants.ROUTE_ID_HEADER)
                             .end()
-                        .toF(Constants.REST_ENDPOINT_OBJECT, (api.getEndpoint() + path.getPath()))
+                        .toF(camelUtils.getCamelHttpEndpoint(api), (api.getEndpoint() + path.getPath()))
                         .log("Response from "+ api.getName() + ": ${body}")
                         .convertBodyTo(String.class)
 
                         .end()
-                        .setId(Constants.DIRECT_ROUTE_PREFIX + api.getContext() + path.getPath() + "-" + path.getVerb());
+                        .setId(camelUtils.buildDirectRouteID(api, path));
             }
 
             runningApiManager.runApi(api.getContext() + path.getPath() + "-" + path.getVerb(), api.getId(), path);
@@ -118,40 +123,52 @@ public class SimpleRestRouter extends RouteBuilder {
                     rest()
                             .get("/" + api.getContext() + path.getPath()).enableCORS(true)
                             .route()
-                            .to("direct:" + api.getContext() + path.getPath() + "-" + path.getVerb())
+                            .to(camelUtils.buildDirectRoute(api, path))
                             .streamCaching()
                             .end()
                             .marshal().json(JsonLibrary.Jackson)
                             .convertBodyTo(String.class)
                             .end()
-                            .setId(Constants.REST_ROUTE_PREFIX + api.getContext() + path.getPath() + "-" + path.getVerb());
+                            .setId(camelUtils.buildRestRouteID(api, path));
                     break;
                 case POST:
                     rest()
                             .post("/" + api.getContext() + path.getPath()).enableCORS(true)
                             .route()
-                            .to("direct:" + api.getContext() + path.getPath() + "-" + path.getVerb())
+                            .to(camelUtils.buildDirectRoute(api, path))
                             .streamCaching()
                             .end()
                             .marshal().json(JsonLibrary.Jackson)
                             .convertBodyTo(String.class)
                             .end()
-                            .setId(Constants.REST_ROUTE_PREFIX + api.getContext() + path.getPath() + "-" + path.getVerb());
+                            .setId(camelUtils.buildRestRouteID(api, path));
                     break;
                 case PUT:
                     rest()
                             .put("/" + api.getContext() + path.getPath()).enableCORS(true)
                             .route()
-                            .to("direct:" + api.getContext() + path.getPath() + "-" + path.getVerb())
+                            .to(camelUtils.buildDirectRoute(api, path))
                             .streamCaching()
                             .end()
                             .marshal().json(JsonLibrary.Jackson)
                             .convertBodyTo(String.class)
                             .end()
-                            .setId(Constants.REST_ROUTE_PREFIX + api.getContext() + path.getPath() + "-" + path.getVerb());
+                            .setId(camelUtils.buildRestRouteID(api, path));
+                    break;
+                case DELETE:
+                    rest()
+                            .delete("/" + api.getContext() + path.getPath()).enableCORS(true)
+                            .route()
+                            .to(Constants.DIRECT_ROUTE_IDENTIFIER + api.getContext() + path.getPath() + "-" + path.getVerb())
+                            .streamCaching()
+                            .end()
+                            .marshal().json(JsonLibrary.Jackson)
+                            .convertBodyTo(String.class)
+                            .end()
+                            .setId(camelUtils.buildRestRouteID(api, path));
                     break;
                 default:
-                    log.error("PATH NOT AVAILABLE: " + path.getVerb());
+                    log.error("PATH NOT AVAILABLE: {}", path.getVerb());
                     break;
             }
         }

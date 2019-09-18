@@ -7,9 +7,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -20,22 +18,22 @@ public class ErrorController {
     @Autowired
     private RunningApiManager runningApiManager;
 
-    @RequestMapping( path="/error", method= RequestMethod.GET)
+    @GetMapping(path="/error")
     public ResponseEntity<String> get(HttpServletRequest request) {
         return buildResponse(request);
     }
 
-    @RequestMapping( path="/error", method=RequestMethod.POST)
+    @PostMapping(path="/error")
     public ResponseEntity<String> post(HttpServletRequest request) {
         return buildResponse(request);
     }
 
-    @RequestMapping( path="/error", method=RequestMethod.PUT)
+    @PutMapping(path="/error")
     public ResponseEntity<String> put(HttpServletRequest request) {
         return buildResponse(request);
     }
 
-    @RequestMapping( path="/error", method=RequestMethod.DELETE)
+    @DeleteMapping(path="/error")
     public ResponseEntity<String> delete(HttpServletRequest request) {
         return buildResponse(request);
     }
@@ -44,10 +42,8 @@ public class ErrorController {
         JSONObject result = new JSONObject();
 
         String routeId = request.getHeader(Constants.ROUTE_ID_HEADER);
-        if(routeId != null && runningApiManager.blockApi(routeId)) {
-            log.info("will block api");
-        } else {
-            log.info("will NOT block api");
+        if(routeId != null) {
+            runningApiManager.blockApi(routeId);
         }
 
         try {

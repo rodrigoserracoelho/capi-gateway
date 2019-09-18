@@ -5,6 +5,7 @@ import at.rodrigo.api.gateway.entity.Api;
 import at.rodrigo.api.gateway.entity.Path;
 import at.rodrigo.api.gateway.entity.Verb;
 import at.rodrigo.api.gateway.processor.AuthProcessor;
+import at.rodrigo.api.gateway.utils.CamelUtils;
 import com.hazelcast.test.TestHazelcastInstanceFactory;
 import org.apache.camel.CamelContext;
 import org.apache.camel.impl.DefaultCamelContext;
@@ -32,6 +33,8 @@ class TempReloadControllerTest {
 
     private RunningApiManager runningApiManager = new RunningApiManager();
 
+    private CamelUtils camelUtils = new CamelUtils();
+
     private static TestHazelcastInstanceFactory testInstanceFactory = new TestHazelcastInstanceFactory();
 
     @BeforeEach
@@ -58,13 +61,13 @@ class TempReloadControllerTest {
         apiPathList.add(path);
         api.setPaths(apiPathList);
 
-        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
         TempReloadController tempReloadControllerUnderTest = new TempReloadController();
 
         ReflectionTestUtils.setField(runningApiManager, "hazelcastInstance", testInstanceFactory.newHazelcastInstance());
         ReflectionTestUtils.setField(tempReloadControllerUnderTest, "runningApiManager", runningApiManager);
         ReflectionTestUtils.setField(tempReloadControllerUnderTest, "camelContext", camelContext);
         ReflectionTestUtils.setField(tempReloadControllerUnderTest, "authProcessor", authProcessor);
+        ReflectionTestUtils.setField(tempReloadControllerUnderTest, "camelUtils", camelUtils);
         ReflectionTestUtils.setField(tempReloadControllerUnderTest, "apiGatewayErrorEndpoint", "localhost:8380/error");
 
         JSONObject result = new JSONObject();
@@ -74,7 +77,7 @@ class TempReloadControllerTest {
         final ResponseEntity<String> expectedResult = new ResponseEntity<>(result.toString(), HttpStatus.OK);
 
         // Run the test
-        ResponseEntity<String> responseResult = tempReloadControllerUnderTest.post(api, request);
+        ResponseEntity<String> responseResult = tempReloadControllerUnderTest.post(api);
 
         // Verify the results
         assertEquals(expectedResult, responseResult);
