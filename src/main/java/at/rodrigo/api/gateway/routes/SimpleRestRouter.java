@@ -9,8 +9,10 @@ import at.rodrigo.api.gateway.utils.CamelUtils;
 import at.rodrigo.api.gateway.utils.Constants;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.model.ProcessDefinition;
+import org.apache.camel.model.RouteDefinition;
 import org.apache.camel.model.dataformat.JsonLibrary;
+import org.apache.camel.model.rest.RestOperationParamDefinition;
+import org.apache.camel.model.rest.RestParamType;
 import org.apache.http.conn.HttpHostConnectException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,15 +20,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-//@Component
+import java.util.List;
+
+@Component
 @Slf4j
 public class SimpleRestRouter extends RouteBuilder {
 
     @Value("${api.gateway.error.endpoint}")
     private String apiGatewayErrorEndpoint;
 
-    @Value("${api.gateway.rest.endpoint}")
-    private String apiGatewayRestEndpoint;
+    @Value("${api.gateway.simple.rest.endpoint}")
+    private String apiGatewaySimpleRestEndpoint;
 
     @Autowired
     private AuthProcessor authProcessor;
@@ -46,19 +50,66 @@ public class SimpleRestRouter extends RouteBuilder {
     @Override
     public void configure() {
 
-        log.info("Starting configuration of Dynamic Routes");
+        log.info("Starting configuration of Simple Routes");
 
         if(apiList == null) {
-            apiList = restTemplate.getForObject(apiGatewayRestEndpoint, Api[].class);
+            apiList = restTemplate.getForObject(apiGatewaySimpleRestEndpoint, Api[].class);
         }
 
         for(Api api : apiList) {
-            addRoute(api);
+            try {
+                addRoutes(api);
+            } catch(Exception e) {
+                log.error(e.getMessage(), e);
+            }
         }
+
+
     }
 
-    public void addRoute(Api api) {
+    public void addRoutes(Api api) throws  Exception {
         for(Path path : api.getPaths()) {
+            if(!path.getPath().equals("/error")) {
+                RestOperationParamDefinition restParamDefinition = new RestOperationParamDefinition();
+                List<String> paramList = camelUtils.evaluatePath(path.getPath());
+
+                String routeID = api.getContext() + path.getPath() + "-" + path.getVerb();
+                RouteDefinition routeDefinition;
+
+                switch(path.getVerb()) {
+                    case GET:
+                        routeDefinition = rest().get("/" + api.getContext() + path.getPath()).route();
+                        break;
+                    case POST:
+                        routeDefinition = rest().post("/" + api.getContext() + path.getPath()).route();
+                        break;
+                    case PUT:
+                        routeDefinition = rest().put("/" + api.getContext() + path.getPath()).route();
+                        break;
+                    case DELETE:
+                        routeDefinition = rest().delete("/" + api.getContext() + path.getPath()).route();
+                        break;
+                    default:
+                        throw new Exception("No verb available");
+                }
+                camelUtils.buildOnExceptionDefinition(routeDefinition, HttpHostConnectException.class, true, HttpStatus.SERVICE_UNAVAILABLE, "API NOT AVAILABLE", routeID);
+                if(paramList.isEmpty()) {
+                    camelUtils.buildRoute(routeDefinition, routeID, api, path, false);
+                } else {
+                    for(String param : paramList) {
+                        restParamDefinition.name(param)
+                                .type(RestParamType.path)
+                                .dataType("String");
+                    }
+                    camelUtils.buildRoute(routeDefinition, routeID, api, path, true);
+                }
+
+            }
+        }
+
+
+
+        /*for(Path path : api.getPaths()) {
             if(api.isSecured()) {
                 from(camelUtils.buildDirectRoute(api, path))
                         .streamCaching()
@@ -171,6 +222,6 @@ public class SimpleRestRouter extends RouteBuilder {
                     log.error("PATH NOT AVAILABLE: {}", path.getVerb());
                     break;
             }
-        }
+        }*/
     }
 }

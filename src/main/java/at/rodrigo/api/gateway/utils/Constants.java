@@ -22,4 +22,7 @@ public class Constants {
     public static final String ERROR = "error";
     public static final String RESULT = "result";
     public static final String API = "api";
+    public static final String HTTP4_PREFIX = "http4://";
+    public static final String HTTPS4_PREFIX = "https4://";
+    public static final String HTTP4_CALL_PARAMS = "?throwExceptionOnFailure=false&bridgeEndpoint=true&copyHeaders=true&connectionClose=true";
 }

@@ -1,16 +1,27 @@
 package at.rodrigo.api.gateway.routes;
 
 
+import at.rodrigo.api.gateway.entity.Api;
 import at.rodrigo.api.gateway.entity.Path;
 import at.rodrigo.api.gateway.parser.SwaggerParser;
+import at.rodrigo.api.gateway.utils.CamelUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.camel.CamelContext;
+import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.model.InterceptSendToEndpointDefinition;
+import org.apache.camel.model.RouteDefinition;
 import org.apache.camel.model.rest.RestOperationParamDefinition;
 import org.apache.camel.model.rest.RestParamType;
+import org.apache.camel.spi.CamelInternalProcessorAdvice;
+import org.apache.camel.spi.InterceptSendToEndpoint;
+import org.apache.http.conn.HttpHostConnectException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -20,137 +31,80 @@ public class SwaggerRestRouter extends RouteBuilder {
     @Autowired
     SwaggerParser swaggerParser;
 
+    @Autowired
+    RestTemplate restTemplate;
+
+    @Autowired
+    CamelUtils camelUtils;
+
+    @Autowired
+    CamelContext camelContext;
+
+    @Value("${api.gateway.swagger.rest.endpoint}")
+    private String apiGatewaySwaggerRestEndpoint;
+
+    private Api[] apiList;
+
     @Override
     public void configure() {
 
         log.info("Starting configuration of Swagger Routes");
 
-        List<Path> pathList = swaggerParser.parse("http://localhost:9010/v2/api-docs");
-        addRoutes(pathList);
+        if(apiList == null) {
+            apiList = restTemplate.getForObject(apiGatewaySwaggerRestEndpoint, Api[].class);
+        }
 
+        for(Api api : apiList) {
+            try {
+                addRoutes(api);
+            } catch(Exception e) {
+                log.error(e.getMessage(), e);
+            }
+        }
     }
 
-    public void addRoutes(List<Path> pathList) {
+    public void addRoutes(Api api) throws Exception {
+
+        List<Path> pathList = swaggerParser.parse(api.getSwaggerEndpoint());
 
         for(Path path : pathList) {
             if(!path.getPath().equals("/error")) {
                 RestOperationParamDefinition restParamDefinition = new RestOperationParamDefinition();
-                List<String> paramList = evaluatePath(path.getPath());
+                List<String> paramList = camelUtils.evaluatePath(path.getPath());
+
+                String routeID = api.getContext() + path.getPath() + "-" + path.getVerb();
+                RouteDefinition routeDefinition;
+
                 switch(path.getVerb()) {
                     case GET:
-                        if(paramList.isEmpty()) {
-                            rest()
-                                    .get(path.getPath()).route()
-                                    .toF("http4://localhost:9010" + path.getPath() + "?bridgeEndpoint=true&copyHeaders=true&connectionClose=true")
-                                    .end();
-                        } else {
-                            for(String param : paramList) {
-                                restParamDefinition.name(param)
-                                        .type(RestParamType.path)
-                                        .dataType("String");
-                            }
-                            rest()
-                                    .get(path.getPath())
-                                    .param(restParamDefinition)
-                                    .route()
-                                    .toF("http4://localhost:9010?bridgeEndpoint=true&copyHeaders=true&connectionClose=true")
-                                    .end();
-
-                        }
+                        routeDefinition = rest().get(path.getPath()).route();
                         break;
                     case POST:
-                        if(paramList.isEmpty()) {
-                            rest()
-                                    .post(path.getPath()).route()
-                                    .toF("http4://localhost:9010" + path.getPath() + "?bridgeEndpoint=true&copyHeaders=true&connectionClose=true")
-                                    .end();
-                        } else {
-                            for(String param : paramList) {
-                                restParamDefinition.name(param)
-                                        .type(RestParamType.path)
-                                        .dataType("String");
-                            }
-                            rest()
-                                    .post(path.getPath())
-                                    .param(restParamDefinition)
-                                    .route()
-                                    .toF("http4://localhost:9010?bridgeEndpoint=true&copyHeaders=true&connectionClose=true")
-                                    .end();
-
-                        }
+                        routeDefinition = rest().post("/" + api.getContext() + path.getPath()).route();
                         break;
                     case PUT:
-                        if(paramList.isEmpty()) {
-                            rest()
-                                    .put(path.getPath()).route()
-                                    .toF("http4://localhost:9010" + path.getPath() + "?bridgeEndpoint=true&copyHeaders=true&connectionClose=true")
-                                    .end();
-                        } else {
-                            for(String param : paramList) {
-                                restParamDefinition.name(param)
-                                        .type(RestParamType.path)
-                                        .dataType("String");
-                            }
-                            rest()
-                                    .put(path.getPath())
-                                    .param(restParamDefinition)
-                                    .route()
-                                    .toF("http4://localhost:9010?bridgeEndpoint=true&copyHeaders=true&connectionClose=true")
-                                    .end();
-
-                        }
+                        routeDefinition = rest().put("/" + api.getContext() + path.getPath()).route();
                         break;
                     case DELETE:
-                        if(paramList.isEmpty()) {
-                            rest()
-                                    .delete(path.getPath()).route()
-                                    .toF("http4://localhost:9010" + path.getPath() + "?bridgeEndpoint=true&copyHeaders=true&connectionClose=true")
-                                    .end();
-                        } else {
-                            for(String param : paramList) {
-                                restParamDefinition.name(param)
-                                        .type(RestParamType.path)
-                                        .dataType("String");
-                            }
-                            rest()
-                                    .delete(path.getPath())
-                                    .param(restParamDefinition)
-                                    .route()
-                                    .toF("http4://localhost:9010?bridgeEndpoint=true&copyHeaders=true&connectionClose=true")
-                                    .end();
-
-                        }
+                        routeDefinition = rest().delete("/" + api.getContext() + path.getPath()).route();
                         break;
-                        default:
-                            log.info("No implementation");
-                            break;
-
-
+                    default:
+                        throw new Exception("No verb available");
                 }
 
+                camelUtils.buildOnExceptionDefinition(routeDefinition, HttpHostConnectException.class, true, HttpStatus.SERVICE_UNAVAILABLE, "API NOT AVAILABLE", routeID);
+                if(paramList.isEmpty()) {
+                    camelUtils.buildRoute(routeDefinition, routeID, api, path, false);
+                } else {
+                    for(String param : paramList) {
+                        restParamDefinition.name(param)
+                                .type(RestParamType.path)
+                                .dataType("String");
+                    }
+                    camelUtils.buildRoute(routeDefinition, routeID, api, path, true);
                 }
-            }
 
-        }
-
-
-
-
-
-    public List<String> evaluatePath(String fullPath) {
-        List<String> paramList = new ArrayList<>();
-        if(fullPath.contains("{")) {
-            String[] splittedPath = fullPath.split("/");
-            for(String path : splittedPath) {
-                if(path.contains("{")) {
-                    String name = path.substring(1, path.length()-1);
-                    paramList.add(name);
-                }
             }
         }
-        return paramList;
     }
-
-
-
 }

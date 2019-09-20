@@ -76,7 +76,6 @@
       <groupId>org.apache.camel</groupId>
       <artifactId>camel-rest-swagger</artifactId>
       <version>3.0.0-RC1</version>
-      <!-- use the same version as your Camel core version -->
     </dependency>
 
     <!-- Test -->
@@ -138,6 +137,7 @@
       <artifactId>hazelcast-spring</artifactId>
     </dependency>
 
+    <!-- Swagger parser dependency-->
     <dependency>
       <groupId>io.swagger.parser.v3</groupId>
       <artifactId>swagger-parser-v3</artifactId>
@@ -145,9 +145,6 @@
     </dependency>
 
   </dependencies>
-
-
-
 
   <build>
     <plugins>
