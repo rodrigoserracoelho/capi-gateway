@@ -77,7 +77,7 @@ public class SwaggerRestRouter extends RouteBuilder {
 
                 switch(path.getVerb()) {
                     case GET:
-                        routeDefinition = rest().get(path.getPath()).route();
+                        routeDefinition = rest().get("/" + api.getContext() + path.getPath()).route();
                         break;
                     case POST:
                         routeDefinition = rest().post("/" + api.getContext() + path.getPath()).route();

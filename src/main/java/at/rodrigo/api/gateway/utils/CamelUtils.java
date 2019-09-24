@@ -4,12 +4,8 @@ import at.rodrigo.api.gateway.entity.Api;
 import at.rodrigo.api.gateway.entity.EndpointType;
 import at.rodrigo.api.gateway.entity.Path;
 import at.rodrigo.api.gateway.processor.AuthProcessor;
+import at.rodrigo.api.gateway.processor.PathVariableProcessor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.camel.CamelContext;
-import org.apache.camel.Endpoint;
-import org.apache.camel.Expression;
-import org.apache.camel.NoSuchEndpointException;
-import org.apache.camel.builder.EndpointProducerBuilder;
 import org.apache.camel.model.RouteDefinition;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,8 +15,9 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.apache.camel.builder.Builder.simple;
+import static org.apache.camel.builder.Builder.header;
 import static org.apache.camel.language.constant.ConstantLanguage.constant;
+
 
 @Component
 @Slf4j
@@ -31,6 +28,9 @@ public class CamelUtils {
 
     @Autowired
     private AuthProcessor authProcessor;
+
+    @Autowired
+    private PathVariableProcessor pathProcessor;
 
     public String getCamelHttpEndpoint(Api api) {
         if(api.getEndpointType().equals(EndpointType.HTTP)) {
@@ -82,8 +82,11 @@ public class CamelUtils {
 
     public void buildRoute(RouteDefinition routeDefinition, String routeID, Api api, Path path, boolean pathHasParams) {
         String protocol = api.getEndpointType().equals(EndpointType.HTTP) ? Constants.HTTP4_PREFIX : Constants.HTTPS4_PREFIX;
-        String toEndpoint = pathHasParams ? protocol + api.getEndpoint() + Constants.HTTP4_CALL_PARAMS : protocol + api.getEndpoint() + path.getPath() + Constants.HTTP4_CALL_PARAMS;
-        buildEndpoint(api.getEndpointType(), api.getEndpoint(), path.getPath(), pathHasParams, routeDefinition);
+        String toEndpoint = pathHasParams ? protocol + api.getEndpoint() + Constants.HTTP4_CALL_PARAMS : protocol + api.getEndpoint() + "/" + path.getPath() + Constants.HTTP4_CALL_PARAMS;
+        if(pathHasParams) {
+            routeDefinition.setHeader(Constants.CAPI_CONTEXT_HEADER, constant(api.getContext()));
+        }
+
         if(api.isSecured()) {
             routeDefinition
                     .streamCaching()
@@ -91,7 +94,8 @@ public class CamelUtils {
                     .setHeader(Constants.BLOCK_IF_IN_ERROR_HEADER, constant(path.isBlockIfInError()))
                     .process(authProcessor)
                     .choice()
-                    .when(simple("${in.headers.valid} == true"))
+                    .when(header(Constants.VALID_HEADER).isEqualTo(true))
+                    .process(pathProcessor)
                     .toF(toEndpoint)
                     .removeHeader(Constants.VALID_HEADER)
                     .otherwise()
@@ -105,26 +109,10 @@ public class CamelUtils {
         } else {
             routeDefinition
                     .streamCaching()
+                    .process(pathProcessor)
                     .toF(toEndpoint)
                     .end()
                     .setId(routeID);
-        }
-    }
-
-    private String buildEndpoint(EndpointType endpointType, String endPoint, String path, boolean hasParams, RouteDefinition routeDefinition) {
-
-        String protocol = endpointType.equals(EndpointType.HTTP) ? Constants.HTTP4_PREFIX : Constants.HTTPS4_PREFIX;
-        if(hasParams) {
-            log.info("-----------------------------------------<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<-------------------------------------");
-            log.info(routeDefinition.getEndpointUrl());
-
-            /*List<PropertyDefinition> propertyDefinitions = routeDefinition.getRouteProperties();
-            for(PropertyDefinition prop : propertyDefinitions) {
-                log.info(prop.getKey() + prop.getValue());
-            }*/
-            return "";
-        } else {
-            return protocol + endPoint + path + Constants.HTTP4_CALL_PARAMS;
         }
     }
 }

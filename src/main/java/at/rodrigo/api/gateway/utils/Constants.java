@@ -25,4 +25,5 @@ public class Constants {
     public static final String HTTP4_PREFIX = "http4://";
     public static final String HTTPS4_PREFIX = "https4://";
     public static final String HTTP4_CALL_PARAMS = "?throwExceptionOnFailure=false&bridgeEndpoint=true&copyHeaders=true&connectionClose=true";
+    public static final String CAPI_CONTEXT_HEADER = "CapiContext";
 }
