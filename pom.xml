@@ -77,6 +77,48 @@
       <artifactId>camel-rest-swagger</artifactId>
       <version>3.0.0-RC1</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-metrics-starter</artifactId>
+      <version>3.0.0-RC1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-zipkin-starter</artifactId>
+      <version>3.0.0-RC1</version>
+    </dependency>
+
+
+    <!-- Instrumentation -->
+    <!--dependency>
+      <groupId>io.zipkin.brave</groupId>
+      <artifactId>brave</artifactId>
+      <version>5.6.1</version>
+    </dependency>
+    <dependency>
+      <groupId>io.zipkin.brave</groupId>
+      <artifactId>brave-instrumentation-http</artifactId>
+      <version>5.6.1</version>
+    </dependency-->
+    <dependency>
+      <groupId>io.zipkin.reporter2</groupId>
+      <artifactId>zipkin-sender-okhttp3</artifactId>
+      <version>2.7.14</version>
+    </dependency>
+
+    <!-- Metrics-->
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-registry-prometheus</artifactId>
+      <version>1.0.7</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-micrometer</artifactId>
+      <version>3.0.0-RC1</version>
+    </dependency>
+
+
 
     <!-- Test -->
     <dependency>

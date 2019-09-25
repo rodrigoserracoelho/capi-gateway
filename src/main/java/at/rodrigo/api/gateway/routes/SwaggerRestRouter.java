@@ -37,9 +37,6 @@ public class SwaggerRestRouter extends RouteBuilder {
     @Autowired
     CamelUtils camelUtils;
 
-    @Autowired
-    CamelContext camelContext;
-
     @Value("${api.gateway.swagger.rest.endpoint}")
     private String apiGatewaySwaggerRestEndpoint;
 
@@ -72,7 +69,7 @@ public class SwaggerRestRouter extends RouteBuilder {
                 RestOperationParamDefinition restParamDefinition = new RestOperationParamDefinition();
                 List<String> paramList = camelUtils.evaluatePath(path.getPath());
 
-                String routeID = api.getContext() + path.getPath() + "-" + path.getVerb();
+                String routeID = camelUtils.normalizeRouteId(api, path);
                 RouteDefinition routeDefinition;
 
                 switch(path.getVerb()) {

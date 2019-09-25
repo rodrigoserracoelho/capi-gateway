@@ -64,7 +64,7 @@ public class SimpleRestRouter extends RouteBuilder {
                 RestOperationParamDefinition restParamDefinition = new RestOperationParamDefinition();
                 List<String> paramList = camelUtils.evaluatePath(path.getPath());
 
-                String routeID = api.getContext() + path.getPath() + "-" + path.getVerb();
+                String routeID = camelUtils.normalizeRouteId(api, path);
                 RouteDefinition routeDefinition;
 
                 switch(path.getVerb()) {

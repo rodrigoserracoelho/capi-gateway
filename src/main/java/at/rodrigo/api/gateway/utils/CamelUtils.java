@@ -4,9 +4,12 @@ import at.rodrigo.api.gateway.entity.Api;
 import at.rodrigo.api.gateway.entity.EndpointType;
 import at.rodrigo.api.gateway.entity.Path;
 import at.rodrigo.api.gateway.processor.AuthProcessor;
+import at.rodrigo.api.gateway.processor.MetricsProcessor;
 import at.rodrigo.api.gateway.processor.PathVariableProcessor;
+import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.model.RouteDefinition;
+import org.apache.camel.zipkin.ZipkinTracer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -32,12 +35,25 @@ public class CamelUtils {
     @Autowired
     private PathVariableProcessor pathProcessor;
 
+    @Autowired
+    private MetricsProcessor metricsProcessor;
+
+    @Autowired
+    private CompositeMeterRegistry meterRegistry;
+
+    @Autowired
+    private ZipkinTracer zipkinTracer;
+
     public String getCamelHttpEndpoint(Api api) {
         if(api.getEndpointType().equals(EndpointType.HTTP)) {
             return Constants.REST_ENDPOINT_OBJECT;
         } else {
             return Constants.REST_SSL_ENDPOINT_OBJECT;
         }
+    }
+
+    public void registerMetric(String routeID) {
+        meterRegistry.counter(routeID);
     }
 
     public String buildDirectRoute(Api api, Path path) {
@@ -98,12 +114,14 @@ public class CamelUtils {
                     .process(pathProcessor)
                     .toF(toEndpoint)
                     .removeHeader(Constants.VALID_HEADER)
+                    .process(metricsProcessor)
                     .otherwise()
                     .setHeader(Constants.ROUTE_ID_HEADER, constant(routeID))
                     .toF(Constants.FAIL_REST_ENDPOINT_OBJECT, apiGatewayErrorEndpoint)
                     .removeHeader(Constants.REASON_CODE_HEADER)
                     .removeHeader(Constants.REASON_MESSAGE_HEADER)
                     .removeHeader(Constants.ROUTE_ID_HEADER)
+                    .process(metricsProcessor)
                     .end()
                     .setId(routeID);
         } else {
@@ -111,8 +129,20 @@ public class CamelUtils {
                     .streamCaching()
                     .process(pathProcessor)
                     .toF(toEndpoint)
+                    .process(metricsProcessor)
                     .end()
                     .setId(routeID);
         }
+
+        registerMetric(normalizeRouteId(api, path));
+        zipkinTracer.addServerServiceMapping(api.getContext() + path.getPath(), normalizeRouteId(api, path));
+    }
+
+    public String normalizeRouteId(Api api, Path path) {
+        return (api.getContext() + path.getPath() + "_" + path.getVerb()).replaceAll("/", "_").replaceAll("-", "_").replaceAll("[{}]", "");
+    }
+
+    public String normalizeRouteId(String route) {
+        return route.replaceAll("/", "_").replaceAll("-", "_").replaceAll("[{}]", "");
     }
 }

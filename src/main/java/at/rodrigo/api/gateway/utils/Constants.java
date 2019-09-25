@@ -6,6 +6,7 @@ public class Constants {
         throw new IllegalStateException("Utility class");
     }
 
+    public static final String APPLICATION_NAME = "CAPI";
     public static final String DIRECT_ROUTE_PREFIX = "DIRECT-";
     public static final String DIRECT_ROUTE_IDENTIFIER = "direct:";
     public static final String REST_ROUTE_PREFIX = "REST-";
