@@ -21,7 +21,7 @@ public class MetricsProcessor implements Processor {
 
     @Override
     public void process(Exchange exchange) {
-        if(exchange.getIn().getHeader("CamelServletContextPath") != null && exchange.getIn().getHeader("CamelHttpMethod") != null) {
+        if(exchange.getIn().getHeader("CamelServletContextPath") != null && exchange.getIn().getHeader(Exchange.HTTP_METHOD) != null) {
             String metricName = camelUtils.normalizeRouteId(exchange.getIn().getHeader("CamelServletContextPath").toString().substring(1) + "-" + exchange.getIn().getHeader("CamelHttpMethod"));
             log.info(metricName);
             RequiredSearch s = meterRegistry.get(metricName);
