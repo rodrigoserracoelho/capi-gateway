@@ -25,7 +25,7 @@ class RunningApiManagerTest extends HazelcastTestSupport {
         RunningApiManager runningApiManagerUnderTest = new RunningApiManager();
         ReflectionTestUtils.setField(runningApiManagerUnderTest, "hazelcastInstance", testInstanceFactory.newHazelcastInstance());
 
-        String routeId = "super-unsafe/internal-GET";
+        String routeId = "super_unsafe_internal_GET";
         String apiId = UUID.randomUUID().toString();
         Path path = new Path();
         path.setPath("/internal");
@@ -46,7 +46,7 @@ class RunningApiManagerTest extends HazelcastTestSupport {
         RunningApiManager runningApiManagerUnderTest = new RunningApiManager();
         ReflectionTestUtils.setField(runningApiManagerUnderTest, "hazelcastInstance", testInstanceFactory.newHazelcastInstance());
 
-        final String routeId = "super-unsafe/internal-GET";
+        final String routeId = "super_unsafe_internal_GET";
         final String apiId = UUID.randomUUID().toString();
         final Path path = new Path();
         path.setPath("/internal");
@@ -70,7 +70,7 @@ class RunningApiManagerTest extends HazelcastTestSupport {
         RunningApiManager runningApiManagerUnderTest = new RunningApiManager();
         ReflectionTestUtils.setField(runningApiManagerUnderTest, "hazelcastInstance", testInstanceFactory.newHazelcastInstance());
 
-        final String routeId = "super-unsafe/internal-GET";
+        final String routeId = "super_unsafe_internal_GET";
         final String apiId = UUID.randomUUID().toString();
         final Path path = new Path();
         path.setPath("/internal");
@@ -85,7 +85,7 @@ class RunningApiManagerTest extends HazelcastTestSupport {
         List<RunningApi> result = runningApiManagerUnderTest.getDisabledRunningApis();
 
         // Verify the results
-        assertEquals("DIRECT-super-unsafe/internal-GET", result.get(0).getDirectRouteId());
+        assertEquals("super_unsafe_internal_GET", result.get(0).getRouteId());
     }
 
 }

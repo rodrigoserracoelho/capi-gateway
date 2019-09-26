@@ -23,8 +23,7 @@ public class RunningApiManager {
     public void runApi(String routeId, String apiId, Path path) {
         RunningApi runningApi = new RunningApi();
         runningApi.setId(apiId);
-        runningApi.setDirectRouteId(Constants.DIRECT_ROUTE_PREFIX + routeId);
-        runningApi.setRestRouteId(Constants.REST_ROUTE_PREFIX + routeId);
+        runningApi.setRouteId(routeId);
         runningApi.setDisabled(false);
         runningApi.setFailedCalls(0);
         if(path.isBlockIfInError()) {

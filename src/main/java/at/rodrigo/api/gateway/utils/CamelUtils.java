@@ -1,5 +1,6 @@
 package at.rodrigo.api.gateway.utils;
 
+import at.rodrigo.api.gateway.cache.RunningApiManager;
 import at.rodrigo.api.gateway.entity.Api;
 import at.rodrigo.api.gateway.entity.EndpointType;
 import at.rodrigo.api.gateway.entity.Path;
@@ -43,6 +44,9 @@ public class CamelUtils {
 
     @Autowired
     private ZipkinTracer zipkinTracer;
+
+    @Autowired
+    private RunningApiManager runningApiManager;
 
     public String getCamelHttpEndpoint(Api api) {
         if(api.getEndpointType().equals(EndpointType.HTTP)) {
@@ -108,6 +112,7 @@ public class CamelUtils {
                     .streamCaching()
                     .setHeader(Constants.JSON_WEB_KEY_SIGNATURE_ENDPOINT_HEADER, constant(api.getJwsEndpoint()))
                     .setHeader(Constants.BLOCK_IF_IN_ERROR_HEADER, constant(path.isBlockIfInError()))
+                    .setHeader(Constants.AUDIENCE_HEADER, constant(api.getAudience()))
                     .process(authProcessor)
                     .choice()
                     .when(header(Constants.VALID_HEADER).isEqualTo(true))
@@ -136,6 +141,8 @@ public class CamelUtils {
 
         registerMetric(normalizeRouteId(api, path));
         zipkinTracer.addServerServiceMapping(api.getContext() + path.getPath(), normalizeRouteId(api, path));
+        runningApiManager.runApi(routeID, api.getId(), path);
+
     }
 
     public String normalizeRouteId(Api api, Path path) {

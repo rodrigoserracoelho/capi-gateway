@@ -25,25 +25,21 @@ public class RunningApiInspector {
     public void checkDisabledRunningApis() {
         List<RunningApi> disabledRunningApis = runningApiManager.getDisabledRunningApis();
         for(RunningApi runningApi : disabledRunningApis) {
-            removeRoute(runningApi.getDirectRouteId(), runningApi.getRestRouteId());
+            removeRoute(runningApi.getRouteId());
         }
     }
 
-    private void removeRoute(String directRouteId, String restRouteId) {
-        Route directRoute = camelContext.getRoute(directRouteId);
+    private void removeRoute(String routeId) {
+        Route directRoute = camelContext.getRoute(routeId);
         if(directRoute != null) {
             try {
-                camelContext.getRouteController().stopRoute(directRouteId);
-                camelContext.removeRoute(directRouteId);
-
-                camelContext.getRouteController().stopRoute(restRouteId);
-                camelContext.removeRoute(restRouteId);
-
+                camelContext.getRouteController().stopRoute(routeId);
+                camelContext.removeRoute(routeId);
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }
         } else {
-            log.info("Route does not exist: {}" , directRouteId);
+            log.info("Route does not exist: {}" , routeId);
         }
     }
 }

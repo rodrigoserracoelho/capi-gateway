@@ -1,6 +1,7 @@
 package at.rodrigo.api.gateway.routes;
 
 
+import at.rodrigo.api.gateway.cache.RunningApiManager;
 import at.rodrigo.api.gateway.entity.Api;
 import at.rodrigo.api.gateway.entity.Path;
 import at.rodrigo.api.gateway.parser.SwaggerParser;
@@ -29,13 +30,13 @@ import java.util.List;
 public class SwaggerRestRouter extends RouteBuilder {
 
     @Autowired
-    SwaggerParser swaggerParser;
+    private SwaggerParser swaggerParser;
 
     @Autowired
-    RestTemplate restTemplate;
+    private RestTemplate restTemplate;
 
     @Autowired
-    CamelUtils camelUtils;
+    private CamelUtils camelUtils;
 
     @Value("${api.gateway.swagger.rest.endpoint}")
     private String apiGatewaySwaggerRestEndpoint;
@@ -100,7 +101,6 @@ public class SwaggerRestRouter extends RouteBuilder {
                     }
                     camelUtils.buildRoute(routeDefinition, routeID, api, path, true);
                 }
-
             }
         }
     }
