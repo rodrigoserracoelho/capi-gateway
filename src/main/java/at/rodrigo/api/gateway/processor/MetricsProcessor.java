@@ -1,6 +1,5 @@
 package at.rodrigo.api.gateway.processor;
 
-import at.rodrigo.api.gateway.grafana.GrafanaClient;
 import at.rodrigo.api.gateway.utils.CamelUtils;
 import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
 import io.micrometer.core.instrument.search.RequiredSearch;
@@ -24,7 +23,6 @@ public class MetricsProcessor implements Processor {
     public void process(Exchange exchange) {
         if(exchange.getIn().getHeader("CamelServletContextPath") != null && exchange.getIn().getHeader(Exchange.HTTP_METHOD) != null) {
             String metricName = camelUtils.normalizeRouteId(exchange.getIn().getHeader("CamelServletContextPath").toString().substring(1) + "-" + exchange.getIn().getHeader(Exchange.HTTP_METHOD));
-            log.info(metricName);
             RequiredSearch s = meterRegistry.get(metricName);
             s.counter().increment();
         }

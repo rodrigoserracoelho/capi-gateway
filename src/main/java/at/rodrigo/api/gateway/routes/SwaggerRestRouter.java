@@ -1,21 +1,16 @@
 package at.rodrigo.api.gateway.routes;
 
 
-import at.rodrigo.api.gateway.cache.RunningApiManager;
 import at.rodrigo.api.gateway.entity.Api;
 import at.rodrigo.api.gateway.entity.Path;
 import at.rodrigo.api.gateway.parser.SwaggerParser;
 import at.rodrigo.api.gateway.utils.CamelUtils;
+import at.rodrigo.api.gateway.utils.GrafanaUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.camel.CamelContext;
-import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.model.InterceptSendToEndpointDefinition;
 import org.apache.camel.model.RouteDefinition;
 import org.apache.camel.model.rest.RestOperationParamDefinition;
 import org.apache.camel.model.rest.RestParamType;
-import org.apache.camel.spi.CamelInternalProcessorAdvice;
-import org.apache.camel.spi.InterceptSendToEndpoint;
 import org.apache.http.conn.HttpHostConnectException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,6 +33,9 @@ public class SwaggerRestRouter extends RouteBuilder {
     @Autowired
     private CamelUtils camelUtils;
 
+    @Autowired
+    private GrafanaUtils grafanaUtils;
+
     @Value("${api.gateway.swagger.rest.endpoint}")
     private String apiGatewaySwaggerRestEndpoint;
 
@@ -59,11 +57,14 @@ public class SwaggerRestRouter extends RouteBuilder {
                 log.error(e.getMessage(), e);
             }
         }
+
+
     }
 
     public void addRoutes(Api api) throws Exception {
 
         List<Path> pathList = swaggerParser.parse(api.getSwaggerEndpoint());
+        api.setPaths(pathList);
 
         for(Path path : pathList) {
             if(!path.getPath().equals("/error")) {
@@ -71,6 +72,7 @@ public class SwaggerRestRouter extends RouteBuilder {
                 List<String> paramList = camelUtils.evaluatePath(path.getPath());
 
                 String routeID = camelUtils.normalizeRouteId(api, path);
+                path.setRouteID(routeID);
                 RouteDefinition routeDefinition;
 
                 switch(path.getVerb()) {
@@ -103,5 +105,6 @@ public class SwaggerRestRouter extends RouteBuilder {
                 }
             }
         }
+        grafanaUtils.addToGrafana(api);
     }
 }

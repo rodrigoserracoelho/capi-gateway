@@ -5,6 +5,7 @@ import at.rodrigo.api.gateway.cache.RunningApiManager;
 import at.rodrigo.api.gateway.entity.Api;
 import at.rodrigo.api.gateway.entity.Path;
 import at.rodrigo.api.gateway.utils.CamelUtils;
+import at.rodrigo.api.gateway.utils.GrafanaUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.RouteDefinition;
@@ -31,6 +32,9 @@ public class SimpleRestRouter extends RouteBuilder {
 
     @Autowired
     private CamelUtils camelUtils;
+
+    @Autowired
+    private GrafanaUtils grafanaUtils;
 
     private Api[] apiList;
 
@@ -65,6 +69,7 @@ public class SimpleRestRouter extends RouteBuilder {
                 List<String> paramList = camelUtils.evaluatePath(path.getPath());
 
                 String routeID = camelUtils.normalizeRouteId(api, path);
+                path.setRouteID(routeID);
                 RouteDefinition routeDefinition;
 
                 switch(path.getVerb()) {
@@ -94,8 +99,8 @@ public class SimpleRestRouter extends RouteBuilder {
                     }
                     camelUtils.buildRoute(routeDefinition, routeID, api, path, true);
                 }
-
             }
         }
+        grafanaUtils.addToGrafana(api);
     }
 }
