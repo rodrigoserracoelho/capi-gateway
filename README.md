@@ -1,5 +1,5 @@
 # CAPI Gateway
-## Light API Gateway implemented with Apache Camel
+###### Light API Gateway implemented with Apache Camel
 
 ## Supports:
 * Easy deployment of Swagger and Open API endpoints.
