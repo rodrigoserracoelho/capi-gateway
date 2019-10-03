@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.UnknownHostException;
 import java.util.List;
 
 @Component
@@ -93,6 +94,7 @@ public class SwaggerRestRouter extends RouteBuilder {
                 }
 
                 camelUtils.buildOnExceptionDefinition(routeDefinition, HttpHostConnectException.class, true, HttpStatus.SERVICE_UNAVAILABLE, "API NOT AVAILABLE", routeID);
+                camelUtils.buildOnExceptionDefinition(routeDefinition, UnknownHostException.class, true, HttpStatus.SERVICE_UNAVAILABLE, "API ENDPOINT WITH WRONG HOST", routeID);
                 if(paramList.isEmpty()) {
                     camelUtils.buildRoute(routeDefinition, routeID, api, path, false);
                 } else {

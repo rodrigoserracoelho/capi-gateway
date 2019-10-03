@@ -27,6 +27,8 @@ public class RunningApiInspector {
         List<RunningApi> disabledRunningApis = runningApiManager.getDisabledRunningApis();
         for(RunningApi runningApi : disabledRunningApis) {
             removeRoute(runningApi.getRouteId());
+            runningApi.setRemoved(true);
+            runningApiManager.saveRunningApi(runningApi);
         }
     }
 

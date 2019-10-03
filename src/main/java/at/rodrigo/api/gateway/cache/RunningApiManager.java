@@ -77,11 +77,19 @@ public class RunningApiManager {
         Iterator<String> i = runningApis.keySet().iterator();
         while(i.hasNext()) {
             String routeId = i.next();
-            if(runningApis.get(routeId).isDisabled()) {
+            if(runningApis.get(routeId).isDisabled() && !runningApis.get(routeId).isRemoved()) {
                 disabledRunningApis.add(runningApis.get(routeId));
             }
         }
         return disabledRunningApis;
+    }
+
+    public void removeRunningApi(RunningApi runningApi) {
+        this.getCachedApi().remove(runningApi);
+    }
+
+    public void saveRunningApi(RunningApi runningApi) {
+        this.getCachedApi().put(runningApi.getRouteId(), runningApi);
     }
 
     public int count() {

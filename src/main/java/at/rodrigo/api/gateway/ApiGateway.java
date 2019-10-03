@@ -23,32 +23,5 @@ public class ApiGateway {
         return new RestTemplate();
     }
 
-    /*@Bean
-    MetricRegistry metricRegistry() {
-        return new MetricRegistry();
-    }*/
-
-    /*@Bean
-    public MeterRegistryCustomizer<MeterRegistry> commonTags() {
-        return r -> r.config().commonTags("application", "CAPI");
-    }*/
-
-    /*@Bean
-    CamelContextConfiguration contextConfiguration() {
-        return new CamelContextConfiguration() {
-            @Override
-            public void beforeApplicationStart(CamelContext context) {
-                log.info("---------------------------------------Configuring Camel metrics on all routes---------------------------------------------------");
-                MetricsRoutePolicyFactory fac = new MetricsRoutePolicyFactory();
-                fac.setMetricsRegistry(metricRegistry());
-                context.addRoutePolicyFactory(fac);
-            }
-
-            @Override
-            public void afterApplicationStart(CamelContext camelContext) {
-                // noop
-            }
-        };
-    }*/
 
 }
