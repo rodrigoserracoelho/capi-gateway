@@ -10,6 +10,12 @@
 * Automatically creates zipkin traceability.
 * Automatically creates a Grafana dashboard with panels per verb (only count total for the moment)
 
+## What we want to support:
+* Key Manager (still researching over the best option).
+* Throttling.
+* Decent UI for management.
+* Provide tools for easy installation 
+
 ## What we use:
 * Apache Camel
 * Spring boot
