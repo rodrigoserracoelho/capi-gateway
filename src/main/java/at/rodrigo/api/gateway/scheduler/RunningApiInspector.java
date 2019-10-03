@@ -23,6 +23,7 @@ public class RunningApiInspector {
 
     @Scheduled(fixedRate = 60000)
     public void checkDisabledRunningApis() {
+        log.info("CHECKING FOR DISABLED APIS.........");
         List<RunningApi> disabledRunningApis = runningApiManager.getDisabledRunningApis();
         for(RunningApi runningApi : disabledRunningApis) {
             removeRoute(runningApi.getRouteId());
@@ -33,6 +34,7 @@ public class RunningApiInspector {
         Route directRoute = camelContext.getRoute(routeId);
         if(directRoute != null) {
             try {
+                log.info("Removing route: {}", routeId);
                 camelContext.getRouteController().stopRoute(routeId);
                 camelContext.removeRoute(routeId);
             } catch (Exception e) {

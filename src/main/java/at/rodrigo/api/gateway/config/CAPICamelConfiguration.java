@@ -1,6 +1,8 @@
 package at.rodrigo.api.gateway.config;
 
+import at.rodrigo.api.gateway.cache.CAPICacheConfig;
 import at.rodrigo.api.gateway.utils.Constants;
+import com.hazelcast.config.Config;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
 import org.apache.camel.CamelContext;
@@ -28,7 +30,12 @@ public class CAPICamelConfiguration {
     private String zipkinEndpoint;
 
     @Autowired
-    CamelContext camelContext;
+    private CamelContext camelContext;
+
+    @Bean
+    public Config hazelCastConfig() {
+        return new CAPICacheConfig();
+    }
 
     @Bean
     void contextConfig() {

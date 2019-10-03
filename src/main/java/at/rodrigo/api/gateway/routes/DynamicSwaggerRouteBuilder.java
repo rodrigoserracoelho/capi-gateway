@@ -14,10 +14,9 @@ import org.apache.camel.model.rest.RestParamType;
 import org.apache.http.conn.HttpHostConnectException;
 import org.springframework.http.HttpStatus;
 
-import java.net.UnknownHostException;
 import java.util.List;
 
-public class DynamicRestRouteBuilder extends RouteBuilder {
+public class DynamicSwaggerRouteBuilder extends RouteBuilder {
 
     private Api api;
     private AuthProcessor authProcessor;
@@ -29,7 +28,7 @@ public class DynamicRestRouteBuilder extends RouteBuilder {
 
     private GrafanaUtils grafanaUtils;
 
-    public DynamicRestRouteBuilder(CamelContext context, AuthProcessor authProcessor, RunningApiManager runningApiManager, CamelUtils camelUtils, GrafanaUtils grafanaUtils, String apiGatewayErrorEndpoint, Api api) {
+    public DynamicSwaggerRouteBuilder(CamelContext context, AuthProcessor authProcessor, RunningApiManager runningApiManager, CamelUtils camelUtils, GrafanaUtils grafanaUtils, String apiGatewayErrorEndpoint, Api api) {
         super(context);
         this.api = api;
         this.authProcessor = authProcessor;
@@ -41,17 +40,14 @@ public class DynamicRestRouteBuilder extends RouteBuilder {
 
     @Override
     public void configure() {
-        log.info("Starting configuration of a Simple Route");
-
         try {
             addRoutes(api);
         } catch(Exception e) {
             log.error(e.getMessage(), e);
         }
-
     }
 
-    public void addRoutes(Api api) throws  Exception {
+    public void addRoutes(Api api) throws Exception {
         for(Path path : api.getPaths()) {
             if(!path.getPath().equals("/error")) {
                 RestOperationParamDefinition restParamDefinition = new RestOperationParamDefinition();
@@ -77,8 +73,8 @@ public class DynamicRestRouteBuilder extends RouteBuilder {
                     default:
                         throw new Exception("No verb available");
                 }
+
                 camelUtils.buildOnExceptionDefinition(routeDefinition, HttpHostConnectException.class, true, HttpStatus.SERVICE_UNAVAILABLE, "API NOT AVAILABLE", routeID);
-                camelUtils.buildOnExceptionDefinition(routeDefinition, UnknownHostException.class, true, HttpStatus.SERVICE_UNAVAILABLE, "API ENDPOINT WITH WRONG HOST", routeID);
                 if(paramList.isEmpty()) {
                     camelUtils.buildRoute(routeDefinition, routeID, api, path, false);
                 } else {
