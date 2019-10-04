@@ -2,14 +2,12 @@ package at.rodrigo.api.gateway.scheduler;
 
 import at.rodrigo.api.gateway.cache.RunningApiManager;
 import at.rodrigo.api.gateway.entity.RunningApi;
-import at.rodrigo.api.gateway.processor.AuthProcessor;
 import at.rodrigo.api.gateway.routes.DynamicPathRouteBuilder;
 import at.rodrigo.api.gateway.utils.CamelUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Route;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -24,12 +22,6 @@ public class RunningApiInspector {
 
     @Autowired
     RunningApiManager runningApiManager;
-
-    @Value("${api.gateway.error.endpoint}")
-    private String apiGatewayErrorEndpoint;
-
-    @Autowired
-    private AuthProcessor authProcessor;
 
     @Autowired
     private CamelUtils camelUtils;
@@ -53,7 +45,7 @@ public class RunningApiInspector {
         for(RunningApi runningApi : removeddRunningApis) {
             if(runningApi.getCountBlockChecks() == runningApi.getUnblockAfterMinutes()) {
                 try {
-                    camelContext.addRoutes(new DynamicPathRouteBuilder(camelContext, authProcessor, runningApiManager, camelUtils, apiGatewayErrorEndpoint, runningApi));
+                    camelContext.addRoutes(new DynamicPathRouteBuilder(camelContext, camelUtils, runningApi));
                     runningApi.setRemoved(false);
                     runningApi.setDisabled(false);
                     runningApi.setCountBlockChecks(0);

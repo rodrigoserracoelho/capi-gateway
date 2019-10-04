@@ -1,8 +1,6 @@
 package at.rodrigo.api.gateway.routes;
 
-import at.rodrigo.api.gateway.cache.RunningApiManager;
 import at.rodrigo.api.gateway.entity.RunningApi;
-import at.rodrigo.api.gateway.processor.AuthProcessor;
 import at.rodrigo.api.gateway.utils.CamelUtils;
 import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
@@ -18,19 +16,12 @@ import java.util.List;
 public class DynamicPathRouteBuilder extends RouteBuilder {
 
     private RunningApi runningApi;
-    private AuthProcessor authProcessor;
-    private String apiGatewayErrorEndpoint;
-
-    private RunningApiManager runningApiManager;
 
     private CamelUtils camelUtils;
 
-    public DynamicPathRouteBuilder(CamelContext context, AuthProcessor authProcessor, RunningApiManager runningApiManager, CamelUtils camelUtils, String apiGatewayErrorEndpoint, RunningApi runningApi) {
+    public DynamicPathRouteBuilder(CamelContext context, CamelUtils camelUtils, RunningApi runningApi) {
         super(context);
         this.runningApi = runningApi;
-        this.authProcessor = authProcessor;
-        this.runningApiManager = runningApiManager;
-        this.apiGatewayErrorEndpoint = apiGatewayErrorEndpoint;
         this.camelUtils = camelUtils;
     }
 
@@ -46,7 +37,7 @@ public class DynamicPathRouteBuilder extends RouteBuilder {
 
     }
 
-    public void addRoute(RunningApi runningApi) throws  Exception {
+    private void addRoute(RunningApi runningApi) throws  Exception {
         RestOperationParamDefinition restParamDefinition = new RestOperationParamDefinition();
         List<String> paramList = camelUtils.evaluatePath(runningApi.getPath());
 
