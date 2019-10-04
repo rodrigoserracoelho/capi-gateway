@@ -1,7 +1,9 @@
 package at.rodrigo.api.gateway.cache;
 
+import at.rodrigo.api.gateway.entity.Api;
 import at.rodrigo.api.gateway.entity.Path;
 import at.rodrigo.api.gateway.entity.RunningApi;
+import at.rodrigo.api.gateway.entity.Verb;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import lombok.extern.slf4j.Slf4j;
@@ -28,15 +30,33 @@ public class RunningApiManager {
         getCachedApi().addEntryListener(new RunningApiListener(), true );
     }
 
-    public void runApi(String routeId, String apiId, Path path) {
+    public void runApi(String routeId, Api api, String path, Verb verb) {
         RunningApi runningApi = new RunningApi();
-        runningApi.setId(apiId);
+        runningApi.setId(api.getId());
         runningApi.setRouteId(routeId);
         runningApi.setDisabled(false);
         runningApi.setFailedCalls(0);
-        if(path.isBlockIfInError()) {
-            runningApi.setMaxAllowedFailedCalls(path.getMaxAllowedFailedCalls());
+
+        runningApi.setContext(api.getContext());
+        runningApi.setAudience(api.getAudience());
+        runningApi.setEndpoint(api.getEndpoint());
+        runningApi.setJwsEndpoint(api.getJwsEndpoint());
+        runningApi.setEndpointType(api.getEndpointType());
+        runningApi.setSecured(api.isSecured());
+        runningApi.setPath(path);
+        runningApi.setVerb(verb);
+        runningApi.setBlockIfInError(api.isBlockIfInError());
+
+        if(api.isBlockIfInError()) {
+            if(api.isUnblockAfter()) {
+                runningApi.setUnblockAfterMinutes(api.getUnblockAfterMinutes());
+            } else {
+                runningApi.setUnblockAfterMinutes(-1);
+            }
+            runningApi.setUnblockAfter(api.isUnblockAfter());
+            runningApi.setMaxAllowedFailedCalls(api.getMaxAllowedFailedCalls());
         } else {
+            runningApi.setUnblockAfterMinutes(-1);
             runningApi.setMaxAllowedFailedCalls(-1);
         }
         getCachedApi().put(routeId, runningApi);
@@ -84,8 +104,17 @@ public class RunningApiManager {
         return disabledRunningApis;
     }
 
-    public void removeRunningApi(RunningApi runningApi) {
-        this.getCachedApi().remove(runningApi);
+    public List<RunningApi> getRemovedRunningApis() {
+        List<RunningApi> removedRunningApis = new ArrayList<>();
+        IMap<String, RunningApi> runningApis = getCachedApi();
+        Iterator<String> i = runningApis.keySet().iterator();
+        while(i.hasNext()) {
+            String routeId = i.next();
+            if(runningApis.get(routeId).isDisabled() && runningApis.get(routeId).isRemoved() && runningApis.get(routeId).isUnblockAfter()) {
+                removedRunningApis.add(runningApis.get(routeId));
+            }
+        }
+        return removedRunningApis;
     }
 
     public void saveRunningApi(RunningApi runningApi) {

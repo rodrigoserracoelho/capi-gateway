@@ -4,6 +4,7 @@ import at.rodrigo.api.gateway.cache.RunningApiManager;
 import at.rodrigo.api.gateway.entity.Api;
 import at.rodrigo.api.gateway.entity.EndpointType;
 import at.rodrigo.api.gateway.entity.Path;
+import at.rodrigo.api.gateway.entity.RunningApi;
 import at.rodrigo.api.gateway.processor.AuthProcessor;
 import at.rodrigo.api.gateway.processor.MetricsProcessor;
 import at.rodrigo.api.gateway.processor.PathVariableProcessor;
@@ -48,28 +49,8 @@ public class CamelUtils {
     @Autowired
     private RunningApiManager runningApiManager;
 
-    public String getCamelHttpEndpoint(Api api) {
-        if(api.getEndpointType().equals(EndpointType.HTTP)) {
-            return Constants.REST_ENDPOINT_OBJECT;
-        } else {
-            return Constants.REST_SSL_ENDPOINT_OBJECT;
-        }
-    }
-
     public void registerMetric(String routeID) {
         meterRegistry.counter(routeID);
-    }
-
-    public String buildDirectRoute(Api api, Path path) {
-        return Constants.DIRECT_ROUTE_IDENTIFIER + api.getContext() + path.getPath() + "-" + path.getVerb();
-    }
-
-    public String buildDirectRouteID(Api api, Path path) {
-        return Constants.DIRECT_ROUTE_PREFIX + api.getContext() + path.getPath() + "-" + path.getVerb();
-    }
-
-    public String buildRestRouteID(Api api, Path path) {
-        return Constants.REST_ROUTE_PREFIX + api.getContext() + path.getPath() + "-" + path.getVerb();
     }
 
     public List<String> evaluatePath(String fullPath) {
@@ -111,7 +92,7 @@ public class CamelUtils {
             routeDefinition
                     .streamCaching()
                     .setHeader(Constants.JSON_WEB_KEY_SIGNATURE_ENDPOINT_HEADER, constant(api.getJwsEndpoint()))
-                    .setHeader(Constants.BLOCK_IF_IN_ERROR_HEADER, constant(path.isBlockIfInError()))
+                    .setHeader(Constants.BLOCK_IF_IN_ERROR_HEADER, constant(api.isBlockIfInError()))
                     .setHeader(Constants.AUDIENCE_HEADER, constant(api.getAudience()))
                     .process(authProcessor)
                     .choice()
@@ -141,8 +122,51 @@ public class CamelUtils {
 
         registerMetric(normalizeRouteId(api, path));
         zipkinTracer.addServerServiceMapping(api.getContext() + path.getPath(), normalizeRouteId(api, path));
-        runningApiManager.runApi(routeID, api.getId(), path);
+        runningApiManager.runApi(routeID, api, path.getPath(), path.getVerb());
 
+    }
+
+    public void buildRoute(RouteDefinition routeDefinition, String routeID, RunningApi runningApi, boolean pathHasParams) {
+        String protocol = runningApi.getEndpointType().equals(EndpointType.HTTP) ? Constants.HTTP4_PREFIX : Constants.HTTPS4_PREFIX;
+        String toEndpoint = pathHasParams ? protocol + runningApi.getEndpoint() + Constants.HTTP4_CALL_PARAMS : protocol + runningApi.getEndpoint() + "/" + runningApi.getPath() + Constants.HTTP4_CALL_PARAMS;
+        if(pathHasParams) {
+            routeDefinition.setHeader(Constants.CAPI_CONTEXT_HEADER, constant(runningApi.getContext()));
+        }
+
+        if(runningApi.isSecured()) {
+            routeDefinition
+                    .streamCaching()
+                    .setHeader(Constants.JSON_WEB_KEY_SIGNATURE_ENDPOINT_HEADER, constant(runningApi.getJwsEndpoint()))
+                    .setHeader(Constants.BLOCK_IF_IN_ERROR_HEADER, constant(runningApi.isBlockIfInError()))
+                    .setHeader(Constants.AUDIENCE_HEADER, constant(runningApi.getAudience()))
+                    .process(authProcessor)
+                    .choice()
+                    .when(header(Constants.VALID_HEADER).isEqualTo(true))
+                    .process(pathProcessor)
+                    .toF(toEndpoint)
+                    .removeHeader(Constants.VALID_HEADER)
+                    .process(metricsProcessor)
+                    .otherwise()
+                    .setHeader(Constants.ROUTE_ID_HEADER, constant(routeID))
+                    .toF(Constants.FAIL_REST_ENDPOINT_OBJECT, apiGatewayErrorEndpoint)
+                    .removeHeader(Constants.REASON_CODE_HEADER)
+                    .removeHeader(Constants.REASON_MESSAGE_HEADER)
+                    .removeHeader(Constants.ROUTE_ID_HEADER)
+                    .process(metricsProcessor)
+                    .end()
+                    .setId(routeID);
+        } else {
+            routeDefinition
+                    .streamCaching()
+                    .process(pathProcessor)
+                    .toF(toEndpoint)
+                    .process(metricsProcessor)
+                    .end()
+                    .setId(routeID);
+        }
+
+        registerMetric(runningApi.getRouteId());
+        zipkinTracer.addServerServiceMapping(runningApi.getContext() + runningApi.getPath(), routeID);
     }
 
     public String normalizeRouteId(Api api, Path path) {
