@@ -2,6 +2,7 @@ package at.rodrigo.api.gateway.routes;
 
 
 import at.rodrigo.api.gateway.cache.RunningApiManager;
+import at.rodrigo.api.gateway.cache.ThrottlingManager;
 import at.rodrigo.api.gateway.entity.Api;
 import at.rodrigo.api.gateway.entity.Path;
 import at.rodrigo.api.gateway.utils.CamelUtils;
@@ -29,9 +30,6 @@ public class SimpleRestRouter extends RouteBuilder {
     private String apiGatewaySimpleRestEndpoint;
 
     @Autowired
-    private RunningApiManager runningApiManager;
-
-    @Autowired
     private CamelUtils camelUtils;
 
     @Autowired
@@ -42,6 +40,8 @@ public class SimpleRestRouter extends RouteBuilder {
     @Autowired
     private RestTemplate restTemplate;
 
+    @Autowired
+    private ThrottlingManager throttlingManager;
 
     @Override
     public void configure() {
@@ -63,7 +63,7 @@ public class SimpleRestRouter extends RouteBuilder {
 
     }
 
-    public void addRoutes(Api api) throws  Exception {
+    void addRoutes(Api api) throws  Exception {
         for(Path path : api.getPaths()) {
             if(!path.getPath().equals("/error")) {
                 RestOperationParamDefinition restParamDefinition = new RestOperationParamDefinition();
@@ -103,6 +103,7 @@ public class SimpleRestRouter extends RouteBuilder {
                 }
             }
         }
+        throttlingManager.applyThrottling(api);
         grafanaUtils.addToGrafana(api);
     }
 }

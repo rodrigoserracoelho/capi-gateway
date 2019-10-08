@@ -1,6 +1,7 @@
 package at.rodrigo.api.gateway.routes;
 
 
+import at.rodrigo.api.gateway.cache.ThrottlingManager;
 import at.rodrigo.api.gateway.entity.Api;
 import at.rodrigo.api.gateway.entity.Path;
 import at.rodrigo.api.gateway.parser.SwaggerParser;
@@ -37,6 +38,9 @@ public class SwaggerRestRouter extends RouteBuilder {
     @Autowired
     private GrafanaUtils grafanaUtils;
 
+    @Autowired
+    private ThrottlingManager throttlingManager;
+
     @Value("${api.gateway.swagger.rest.endpoint}")
     private String apiGatewaySwaggerRestEndpoint;
 
@@ -62,13 +66,13 @@ public class SwaggerRestRouter extends RouteBuilder {
 
     }
 
-    public void addRoutes(Api api) throws Exception {
+    void addRoutes(Api api) throws Exception {
 
         List<Path> pathList = swaggerParser.parse(api.getSwaggerEndpoint());
         api.setPaths(pathList);
 
         for(Path path : pathList) {
-            if(!path.getPath().equals("/error")) {
+            //if(!path.getPath().equals("/error")) {
                 RestOperationParamDefinition restParamDefinition = new RestOperationParamDefinition();
                 List<String> paramList = camelUtils.evaluatePath(path.getPath());
 
@@ -105,8 +109,9 @@ public class SwaggerRestRouter extends RouteBuilder {
                     }
                     camelUtils.buildRoute(routeDefinition, routeID, api, path, true);
                 }
-            }
+            //}
         }
+        throttlingManager.applyThrottling(api);
         grafanaUtils.addToGrafana(api);
     }
 }

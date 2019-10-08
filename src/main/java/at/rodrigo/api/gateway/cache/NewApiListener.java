@@ -3,7 +3,6 @@ package at.rodrigo.api.gateway.cache;
 import at.rodrigo.api.gateway.entity.Api;
 import at.rodrigo.api.gateway.entity.Path;
 import at.rodrigo.api.gateway.parser.SwaggerParser;
-import at.rodrigo.api.gateway.processor.AuthProcessor;
 import at.rodrigo.api.gateway.routes.DynamicRestRouteBuilder;
 import at.rodrigo.api.gateway.routes.DynamicSwaggerRouteBuilder;
 import at.rodrigo.api.gateway.utils.CamelUtils;
@@ -14,7 +13,6 @@ import com.hazelcast.map.listener.EntryRemovedListener;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelContext;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -23,17 +21,8 @@ import java.util.List;
 @Slf4j
 public class NewApiListener implements EntryAddedListener<String, Api>, EntryRemovedListener<String, Api> {
 
-    @Value("${api.gateway.error.endpoint}")
-    private String apiGatewayErrorEndpoint;
-
-    @Autowired
-    private AuthProcessor authProcessor;
-
     @Autowired
     private CamelContext camelContext;
-
-    @Autowired
-    private RunningApiManager runningApiManager;
 
     @Autowired
     private CamelUtils camelUtils;
@@ -43,6 +32,9 @@ public class NewApiListener implements EntryAddedListener<String, Api>, EntryRem
 
     @Autowired
     private SwaggerParser swaggerParser;
+
+    @Autowired
+    private ThrottlingManager throttlingManager;
 
     @Override
     public void entryAdded( EntryEvent<String, Api> event ) {
@@ -57,7 +49,7 @@ public class NewApiListener implements EntryAddedListener<String, Api>, EntryRem
                 }
             }
             if(api.getSwaggerEndpoint() == null) {
-                camelContext.addRoutes(new DynamicRestRouteBuilder(camelContext, authProcessor, runningApiManager, camelUtils, grafanaUtils, apiGatewayErrorEndpoint, api));
+                camelContext.addRoutes(new DynamicRestRouteBuilder(camelContext, camelUtils, grafanaUtils, throttlingManager, api));
             } else {
                 List<Path> pathList = swaggerParser.parse(api.getSwaggerEndpoint());
                 for(Path path : pathList) {
@@ -68,7 +60,7 @@ public class NewApiListener implements EntryAddedListener<String, Api>, EntryRem
                     }
                 }
                 api.setPaths(pathList);
-                camelContext.addRoutes(new DynamicSwaggerRouteBuilder(camelContext, authProcessor, runningApiManager, camelUtils, grafanaUtils, apiGatewayErrorEndpoint, api));
+                camelContext.addRoutes(new DynamicSwaggerRouteBuilder(camelContext, camelUtils, grafanaUtils, throttlingManager, api));
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);

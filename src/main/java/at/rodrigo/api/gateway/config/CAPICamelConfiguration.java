@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Configuration;
 import zipkin2.reporter.AsyncReporter;
 import zipkin2.reporter.okhttp3.OkHttpSender;
 
+import javax.annotation.PreDestroy;
 import java.time.Duration;
 
 import static org.apache.camel.component.micrometer.MicrometerConstants.DISTRIBUTION_SUMMARIES;

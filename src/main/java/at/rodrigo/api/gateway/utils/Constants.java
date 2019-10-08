@@ -7,12 +7,7 @@ public class Constants {
     }
 
     public static final String APPLICATION_NAME = "CAPI";
-    public static final String DIRECT_ROUTE_PREFIX = "DIRECT-";
-    public static final String DIRECT_ROUTE_IDENTIFIER = "direct:";
-    public static final String REST_ROUTE_PREFIX = "REST-";
-    public static final String REST_ENDPOINT_OBJECT = "http4:%s?connectTimeout=1000&bridgeEndpoint=true&copyHeaders=true&connectionClose=true";
-    public static final String REST_SSL_ENDPOINT_OBJECT = "https4:%s?connectTimeout=1000&bridgeEndpoint=true&copyHeaders=true&connectionClose=true";
-    public static final String FAIL_REST_ENDPOINT_OBJECT = "http4:%s?throwExceptionOnFailure=false&connectTimeout=1000&bridgeEndpoint=true&copyHeaders=true&connectionClose=true";
+    static final String FAIL_REST_ENDPOINT_OBJECT = "http4:%s?throwExceptionOnFailure=false&connectTimeout=1000&bridgeEndpoint=true&copyHeaders=true&connectionClose=true";
     public static final String JSON_WEB_KEY_SIGNATURE_ENDPOINT_HEADER = "jwks-endpoint";
     public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String BLOCK_IF_IN_ERROR_HEADER = "block-if-in-error";
@@ -23,9 +18,9 @@ public class Constants {
     public static final String ERROR = "error";
     public static final String RESULT = "result";
     public static final String API = "api";
-    public static final String HTTP4_PREFIX = "http4://";
-    public static final String HTTPS4_PREFIX = "https4://";
-    public static final String HTTP4_CALL_PARAMS = "?throwExceptionOnFailure=false&bridgeEndpoint=true&copyHeaders=true&connectionClose=true";
+    static final String HTTP4_PREFIX = "http4://";
+    static final String HTTPS4_PREFIX = "https4://";
+    static final String HTTP4_CALL_PARAMS = "?throwExceptionOnFailure=false&bridgeEndpoint=true&copyHeaders=true&connectionClose=true";
     public static final String CAPI_CONTEXT_HEADER = "CapiContext";
     public static final String AUDIENCE_HEADER = "audience";
 }

@@ -1,9 +1,8 @@
 package at.rodrigo.api.gateway.routes;
 
-import at.rodrigo.api.gateway.cache.RunningApiManager;
+import at.rodrigo.api.gateway.cache.ThrottlingManager;
 import at.rodrigo.api.gateway.entity.Api;
 import at.rodrigo.api.gateway.entity.Path;
-import at.rodrigo.api.gateway.processor.AuthProcessor;
 import at.rodrigo.api.gateway.utils.CamelUtils;
 import at.rodrigo.api.gateway.utils.GrafanaUtils;
 import org.apache.camel.CamelContext;
@@ -20,23 +19,19 @@ import java.util.List;
 public class DynamicSwaggerRouteBuilder extends RouteBuilder {
 
     private Api api;
-    private AuthProcessor authProcessor;
-    private String apiGatewayErrorEndpoint;
-
-    private RunningApiManager runningApiManager;
 
     private CamelUtils camelUtils;
 
     private GrafanaUtils grafanaUtils;
 
-    public DynamicSwaggerRouteBuilder(CamelContext context, AuthProcessor authProcessor, RunningApiManager runningApiManager, CamelUtils camelUtils, GrafanaUtils grafanaUtils, String apiGatewayErrorEndpoint, Api api) {
+    private ThrottlingManager throttlingManager;
+
+    public DynamicSwaggerRouteBuilder(CamelContext context, CamelUtils camelUtils, GrafanaUtils grafanaUtils, ThrottlingManager throttlingManager, Api api) {
         super(context);
         this.api = api;
-        this.authProcessor = authProcessor;
-        this.runningApiManager = runningApiManager;
-        this.apiGatewayErrorEndpoint = apiGatewayErrorEndpoint;
         this.camelUtils = camelUtils;
         this.grafanaUtils = grafanaUtils;
+        this.throttlingManager = throttlingManager;
     }
 
     @Override
@@ -48,7 +43,7 @@ public class DynamicSwaggerRouteBuilder extends RouteBuilder {
         }
     }
 
-    public void addRoutes(Api api) throws Exception {
+    void addRoutes(Api api) throws Exception {
         for(Path path : api.getPaths()) {
             if(!path.getPath().equals("/error")) {
                 RestOperationParamDefinition restParamDefinition = new RestOperationParamDefinition();
@@ -89,6 +84,7 @@ public class DynamicSwaggerRouteBuilder extends RouteBuilder {
                 }
             }
         }
+        throttlingManager.applyThrottling(api);
         grafanaUtils.addToGrafana(api);
     }
 }

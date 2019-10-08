@@ -2,8 +2,9 @@ package at.rodrigo.api.gateway.scheduler;
 
 import at.rodrigo.api.gateway.cache.RunningApiManager;
 import at.rodrigo.api.gateway.entity.RunningApi;
-import at.rodrigo.api.gateway.routes.DynamicPathRouteBuilder;
+import at.rodrigo.api.gateway.entity.SuspensionType;
 import at.rodrigo.api.gateway.utils.CamelUtils;
+import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Route;
@@ -24,16 +25,16 @@ public class RunningApiInspector {
     RunningApiManager runningApiManager;
 
     @Autowired
-    private CamelUtils camelUtils;
-
+    CamelUtils camelUtils;
 
     @Scheduled(fixedRate = 60000)
     public void checkDisabledRunningApis() {
         log.info("CHECKING FOR APIS TO BLOCK");
         List<RunningApi> disabledRunningApis = runningApiManager.getDisabledRunningApis();
         for(RunningApi runningApi : disabledRunningApis) {
-            removeRoute(runningApi);
+            camelUtils.suspendRoute(runningApi);
             runningApi.setRemoved(true);
+            runningApi.setSuspensionType(SuspensionType.ERROR);
             runningApiManager.saveRunningApi(runningApi);
         }
     }
@@ -45,10 +46,11 @@ public class RunningApiInspector {
         for(RunningApi runningApi : removeddRunningApis) {
             if(runningApi.getCountBlockChecks() == runningApi.getUnblockAfterMinutes()) {
                 try {
-                    camelContext.addRoutes(new DynamicPathRouteBuilder(camelContext, camelUtils, runningApi));
+                    camelContext.getRouteController().resumeRoute(runningApi.getRouteId());
                     runningApi.setRemoved(false);
                     runningApi.setDisabled(false);
                     runningApi.setCountBlockChecks(0);
+                    runningApi.setSuspensionType(null);
                     runningApiManager.saveRunningApi(runningApi);
                 } catch (Exception e) {
                     log.error(e.getMessage(), e);
@@ -57,21 +59,6 @@ public class RunningApiInspector {
                 runningApi.setCountBlockChecks(runningApi.getCountBlockChecks() + 1);
                 runningApiManager.saveRunningApi(runningApi);
             }
-        }
-    }
-
-    private void removeRoute(RunningApi runningApi) {
-        Route routeToRemove = camelContext.getRoute(runningApi.getRouteId());
-        if(routeToRemove != null) {
-            try {
-                log.info("Removing route: {}", routeToRemove);
-                camelContext.getRouteController().stopRoute(runningApi.getRouteId());
-                camelContext.removeRoute(runningApi.getRouteId());
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
-            }
-        } else {
-            log.info("Route does not exist: {}" , runningApi.getRouteId());
         }
     }
 }

@@ -1,9 +1,9 @@
 package at.rodrigo.api.gateway.cache;
 
 import at.rodrigo.api.gateway.entity.Api;
-import at.rodrigo.api.gateway.entity.Path;
 import at.rodrigo.api.gateway.entity.RunningApi;
 import at.rodrigo.api.gateway.entity.Verb;
+import at.rodrigo.api.gateway.utils.Constants;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -21,9 +22,6 @@ public class RunningApiManager {
 
     @Autowired
     private HazelcastInstance hazelcastInstance;
-
-    //@Autowired
-    //private RunningApiListener runningApiListener;
 
     @PostConstruct
     public void addListener() {
@@ -62,7 +60,7 @@ public class RunningApiManager {
         getCachedApi().put(routeId, runningApi);
     }
 
-    private RunningApi getRunningApi(String routeId) {
+    public RunningApi getRunningApi(String routeId) {
         if(getCachedApi().containsKey(routeId)) {
             return getCachedApi().get(routeId);
         } else {

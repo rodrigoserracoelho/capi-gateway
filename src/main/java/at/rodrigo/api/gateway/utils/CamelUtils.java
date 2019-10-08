@@ -10,6 +10,8 @@ import at.rodrigo.api.gateway.processor.MetricsProcessor;
 import at.rodrigo.api.gateway.processor.PathVariableProcessor;
 import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.camel.CamelContext;
+import org.apache.camel.Route;
 import org.apache.camel.model.RouteDefinition;
 import org.apache.camel.zipkin.ZipkinTracer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,8 +51,13 @@ public class CamelUtils {
     @Autowired
     private RunningApiManager runningApiManager;
 
-    public void registerMetric(String routeID) {
+    @Autowired
+    private CamelContext camelContext;
+
+    void registerMetric(String routeID) {
+
         meterRegistry.counter(routeID);
+
     }
 
     public List<String> evaluatePath(String fullPath) {
@@ -175,5 +182,19 @@ public class CamelUtils {
 
     public String normalizeRouteId(String route) {
         return route.replaceAll("/", "_").replaceAll("-", "_").replaceAll("[{}]", "");
+    }
+
+    public void suspendRoute(RunningApi runningApi) {
+        Route routeToRemove = camelContext.getRoute(runningApi.getRouteId());
+        if(routeToRemove != null) {
+            try {
+                log.info("Removing route: {}", routeToRemove.getId());
+                camelContext.getRouteController().suspendRoute(runningApi.getRouteId());
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            }
+        } else {
+            log.info("Route does not exist: {}" , runningApi.getRouteId());
+        }
     }
 }
