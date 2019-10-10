@@ -82,7 +82,7 @@ You can define your own paths, in case you dont have a Swagger Endpoint (Swagger
         "swagger" : false
     }
 
-## Instalation
+## Installation
 
     sudo docker run -it --rm --name capi-gateway-build -v "$PWD":/usr/src/capi -v "$HOME/.m2":/root/.m2 -v /root/.docker:/root/.docker -w /usr/src/capi maven:3.3-jdk-8 mvn compile -DskipTests jib:build
 
