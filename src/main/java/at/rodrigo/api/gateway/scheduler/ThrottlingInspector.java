@@ -11,7 +11,6 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Measurement;
 import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.camel.CamelContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -26,9 +25,6 @@ import java.util.List;
 public class ThrottlingInspector {
 
     @Autowired
-    CamelContext camelContext;
-
-    @Autowired
     CompositeMeterRegistry meterRegistry;
 
     @Autowired
@@ -40,13 +36,11 @@ public class ThrottlingInspector {
     @Autowired
     CamelUtils camelUtils;
 
-    @Scheduled(fixedRate = 15000)
+    @Scheduled(fixedRateString = "${api.gateway.api.throttling.inspector.period}")
     public void count() {
-        log.info("Throttling Inspector started at: " + Calendar.getInstance().getTime().toString());
         Date executionTime = Calendar.getInstance().getTime();
         IMap<String, ThrottlingPolicy> throttlingPolicies = throttlingManager.getThrottlingPolicies();
         Iterator<String> throttlingIterator = throttlingPolicies.keySet().iterator();
-        log.info("------------------------------------------------------------------------------------------------------------------------");
         try {
             while(throttlingIterator.hasNext()) {
                 String policyID = throttlingIterator.next();
@@ -54,7 +48,6 @@ public class ThrottlingInspector {
                 if(throttlingPolicy.isApplyPerPath()) {
                     List<String> routes = throttlingPolicy.getRouteID();
                     for(String routeID : routes) {
-                        log.info("P_ID: " + policyID + " - R_ID: " + routeID);
                         RunningApi runningApi = runningApiManager.getRunningApi(routeID);
                         if(!runningApi.isRemoved()) {
                             Counter counter = meterRegistry.get(routeID).counter();
@@ -67,7 +60,6 @@ public class ThrottlingInspector {
                                 int value = (int) measurement.getValue();
 
                                 if(throttlingPolicy.getThrottlingExpiration() == null) {
-                                    log.info("NO CALENDAR INFO, START ONE");
                                     throttlingPolicy.setThrottlingExpiration(throttlingExpirationTime.getTime());
                                     throttlingPolicy.setStartCountingAt(value);
                                     throttlingPolicy.setTotalCalls(value);
@@ -75,22 +67,17 @@ public class ThrottlingInspector {
                                     if(executionTime.before(throttlingPolicy.getThrottlingExpiration())) {
                                         int realTimeCalls = throttlingPolicy.getTotalCalls() - throttlingPolicy.getStartCountingAt();
                                         if(realTimeCalls >= throttlingPolicy.getMaxCallsAllowed()) {
-                                            log.info("BLOCK THIS ROUTE");
-                                            log.info(throttlingPolicy.getTotalCalls()+"");
-                                            log.info(throttlingPolicy.getStartCountingAt()+"");
-                                            log.info(throttlingPolicy.getMaxCallsAllowed()+"");
+                                            camelUtils.suspendRoute(runningApi);
                                             runningApi.setRemoved(true);
                                             runningApi.setDisabled(true);
                                             runningApi.setSuspensionType(SuspensionType.THROTTLING);
                                             runningApi.setSuspensionMessage("Your route was suspended because its configured to accept: " + throttlingPolicy.getMaxCallsAllowed() + " calls during a period of " + throttlingPolicy.getPeriodForMaxCalls());
-                                            camelUtils.suspendRoute(runningApi);
+                                            camelUtils.addSuspendedRoute(runningApi);
                                             runningApiManager.saveRunningApi(runningApi);
                                         } else {
-                                            log.info("DONT BLOCK THIS ROUTE");
                                             throttlingPolicy.setTotalCalls(value);
                                         }
                                     } else {
-                                        log.info("STARTING NEW PERIOD AND INCREMENTING NUMBER");
                                         throttlingPolicy.setThrottlingExpiration(throttlingExpirationTime.getTime());
                                         throttlingPolicy.setStartCountingAt(value);
                                         throttlingPolicy.setTotalCalls(value);
@@ -100,11 +87,12 @@ public class ThrottlingInspector {
                             throttlingManager.saveThrottlingPolicy(policyID, throttlingPolicy);
 
                         } else if(throttlingPolicy.getThrottlingExpiration().before(executionTime) && runningApi.getSuspensionType().equals(SuspensionType.THROTTLING)) {
-                            log.info("re-enabling route....");
+                            //Remove suspended route
+                            camelUtils.suspendRoute(runningApi);
                             throttlingPolicy.setThrottlingExpiration(null);
                             runningApi.setDisabled(false);
                             runningApi.setRemoved(false);
-                            camelContext.getRouteController().resumeRoute(runningApi.getRouteId());
+                            camelUtils.addActiveRoute(runningApi);
                             runningApiManager.saveRunningApi(runningApi);
                             throttlingManager.saveThrottlingPolicy(policyID, throttlingPolicy);
                         }
@@ -114,8 +102,6 @@ public class ThrottlingInspector {
                     //apply per api
                 }
             }
-            log.info("------------------------------------------------------------------------------------------------------------------------");
-
         } catch(Exception e) {
             log.error(e.getMessage(), e);
         }

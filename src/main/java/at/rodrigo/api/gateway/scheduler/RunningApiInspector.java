@@ -21,7 +21,7 @@ public class RunningApiInspector {
     @Autowired
     CamelUtils camelUtils;
 
-    @Scheduled(fixedRate = 60000)
+    @Scheduled(fixedRateString = "${api.gateway.api.running.inspector.period}")
     public void checkDisabledRunningApis() {
         log.info("CHECKING FOR APIS TO BLOCK");
         List<RunningApi> disabledRunningApis = runningApiManager.getDisabledRunningApis();
@@ -35,7 +35,7 @@ public class RunningApiInspector {
         }
     }
 
-    @Scheduled(fixedRate = 60000)
+    @Scheduled(fixedRateString = "${api.gateway.api.running.inspector.period}")
     public void checkRunningApisToUnblock() {
         log.info("CHECKING FOR APIS TO UNBLOCK");
         List<RunningApi> removeddRunningApis = runningApiManager.getRemovedRunningApis();

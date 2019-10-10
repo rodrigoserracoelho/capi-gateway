@@ -57,7 +57,7 @@ public class CamelUtils {
     @Autowired
     private CamelContext camelContext;
 
-    void registerMetric(String routeID) {
+    private void registerMetric(String routeID) {
 
         meterRegistry.counter(routeID);
 
@@ -180,10 +180,9 @@ public class CamelUtils {
     }
 
     public void buildSuspendedRoute(RouteDefinition routeDefinition, String routeID) {
-        String toEndpoint = "http4:localhost:8380/error?throwExceptionOnFailure=false&connectTimeout=1000&bridgeEndpoint=true&copyHeaders=true&connectionClose=true";
         routeDefinition
                 .setHeader(Constants.ROUTE_ID_HEADER, constant(routeID))
-                .toF(toEndpoint)
+                .toF(Constants.FAIL_REST_ENDPOINT_OBJECT, apiGatewayErrorEndpoint)
                 .end()
                 .setId(routeID);
     }
