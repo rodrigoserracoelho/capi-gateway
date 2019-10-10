@@ -1,0 +1,13 @@
+version: "2"
+services:
+  capi:
+    image: surisoft/capi-gateway:1.0
+    ports:
+      - "8380:8380"
+    links:
+      - mongo
+  mongo:
+    container_name: capi-mongo
+    image: mongo
+    ports:
+      - "27017:27017"

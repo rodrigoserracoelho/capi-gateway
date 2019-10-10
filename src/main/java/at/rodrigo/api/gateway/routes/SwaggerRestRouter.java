@@ -5,6 +5,7 @@ import at.rodrigo.api.gateway.cache.ThrottlingManager;
 import at.rodrigo.api.gateway.entity.Api;
 import at.rodrigo.api.gateway.entity.Path;
 import at.rodrigo.api.gateway.parser.SwaggerParser;
+import at.rodrigo.api.gateway.repository.ApiRepository;
 import at.rodrigo.api.gateway.utils.CamelUtils;
 import at.rodrigo.api.gateway.utils.GrafanaUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -14,10 +15,8 @@ import org.apache.camel.model.rest.RestOperationParamDefinition;
 import org.apache.camel.model.rest.RestParamType;
 import org.apache.http.conn.HttpHostConnectException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
 import java.net.UnknownHostException;
 import java.util.List;
@@ -27,10 +26,10 @@ import java.util.List;
 public class SwaggerRestRouter extends RouteBuilder {
 
     @Autowired
-    private SwaggerParser swaggerParser;
+    private ApiRepository apiRepository;
 
     @Autowired
-    private RestTemplate restTemplate;
+    private SwaggerParser swaggerParser;
 
     @Autowired
     private CamelUtils camelUtils;
@@ -41,20 +40,12 @@ public class SwaggerRestRouter extends RouteBuilder {
     @Autowired
     private ThrottlingManager throttlingManager;
 
-    @Value("${api.gateway.swagger.rest.endpoint}")
-    private String apiGatewaySwaggerRestEndpoint;
-
-    private Api[] apiList;
-
     @Override
     public void configure() {
 
         log.info("Starting configuration of Swagger Routes");
 
-        if(apiList == null) {
-            apiList = restTemplate.getForObject(apiGatewaySwaggerRestEndpoint, Api[].class);
-        }
-
+        List<Api> apiList = apiRepository.findAllBySwagger(true);
         for(Api api : apiList) {
             try {
                 addRoutes(api);
@@ -62,8 +53,6 @@ public class SwaggerRestRouter extends RouteBuilder {
                 log.error(e.getMessage(), e);
             }
         }
-
-
     }
 
     void addRoutes(Api api) throws Exception {

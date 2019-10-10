@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
 import zipkin2.reporter.AsyncReporter;
 import zipkin2.reporter.okhttp3.OkHttpSender;
 
@@ -32,6 +33,12 @@ public class CAPICamelConfiguration {
 
     @Autowired
     private CamelContext camelContext;
+
+    @Bean
+    RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
+
 
     @Bean
     public Config hazelCastConfig() {

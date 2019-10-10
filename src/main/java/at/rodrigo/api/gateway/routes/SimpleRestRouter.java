@@ -1,10 +1,9 @@
 package at.rodrigo.api.gateway.routes;
 
-
-import at.rodrigo.api.gateway.cache.RunningApiManager;
 import at.rodrigo.api.gateway.cache.ThrottlingManager;
 import at.rodrigo.api.gateway.entity.Api;
 import at.rodrigo.api.gateway.entity.Path;
+import at.rodrigo.api.gateway.repository.ApiRepository;
 import at.rodrigo.api.gateway.utils.CamelUtils;
 import at.rodrigo.api.gateway.utils.GrafanaUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -14,10 +13,8 @@ import org.apache.camel.model.rest.RestOperationParamDefinition;
 import org.apache.camel.model.rest.RestParamType;
 import org.apache.http.conn.HttpHostConnectException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
 import java.net.UnknownHostException;
 import java.util.List;
@@ -26,19 +23,14 @@ import java.util.List;
 @Slf4j
 public class SimpleRestRouter extends RouteBuilder {
 
-    @Value("${api.gateway.simple.rest.endpoint}")
-    private String apiGatewaySimpleRestEndpoint;
+    @Autowired
+    private ApiRepository apiRepository;
 
     @Autowired
     private CamelUtils camelUtils;
 
     @Autowired
     private GrafanaUtils grafanaUtils;
-
-    private Api[] apiList;
-
-    @Autowired
-    private RestTemplate restTemplate;
 
     @Autowired
     private ThrottlingManager throttlingManager;
@@ -48,10 +40,7 @@ public class SimpleRestRouter extends RouteBuilder {
 
         log.info("Starting configuration of Simple Routes");
 
-        if(apiList == null) {
-            apiList = restTemplate.getForObject(apiGatewaySimpleRestEndpoint, Api[].class);
-        }
-
+        List<Api> apiList = apiRepository.findAllBySwagger(false);
         for(Api api : apiList) {
             try {
                 addRoutes(api);
