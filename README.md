@@ -9,10 +9,10 @@
 * Automatically creates metrics for Prometheus (Verb granularity)
 * Automatically creates zipkin traceability.
 * Automatically creates a Grafana dashboard with panels per verb (only count total for the moment)
+* Throttling (You can apply per API or per API Path)
 
 ## What we want to support:
 * Key Manager (still researching over the best option).
-* Throttling.
 * Decent UI for management.
 * Provide tools for easy installation 
 
