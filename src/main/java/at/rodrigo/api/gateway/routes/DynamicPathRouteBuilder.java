@@ -40,9 +40,7 @@ public class DynamicPathRouteBuilder extends RouteBuilder {
     private void addRoute(RunningApi runningApi) throws  Exception {
         RestOperationParamDefinition restParamDefinition = new RestOperationParamDefinition();
         List<String> paramList = camelUtils.evaluatePath(runningApi.getPath());
-
         RouteDefinition routeDefinition;
-
         switch(runningApi.getVerb()) {
             case GET:
                 routeDefinition = rest().get("/" + runningApi.getContext() + runningApi.getPath()).route();

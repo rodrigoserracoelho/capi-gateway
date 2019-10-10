@@ -8,10 +8,13 @@ import at.rodrigo.api.gateway.entity.RunningApi;
 import at.rodrigo.api.gateway.processor.AuthProcessor;
 import at.rodrigo.api.gateway.processor.MetricsProcessor;
 import at.rodrigo.api.gateway.processor.PathVariableProcessor;
+import at.rodrigo.api.gateway.routes.DynamicPathRouteBuilder;
+import at.rodrigo.api.gateway.routes.SuspendedRouteBuilder;
 import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Route;
+import org.apache.camel.builder.DeadLetterChannelBuilder;
 import org.apache.camel.model.RouteDefinition;
 import org.apache.camel.zipkin.ZipkinTracer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,7 +97,9 @@ public class CamelUtils {
         if(pathHasParams) {
             routeDefinition.setHeader(Constants.CAPI_CONTEXT_HEADER, constant(api.getContext()));
         }
-
+        DeadLetterChannelBuilder deadLetterChannelBuilder = new DeadLetterChannelBuilder();
+        deadLetterChannelBuilder.setDeadLetterUri("http4:localhost:8380/error");
+        routeDefinition.errorHandler(deadLetterChannelBuilder);
         if(api.isSecured()) {
             routeDefinition
                     .streamCaching()
@@ -139,7 +144,6 @@ public class CamelUtils {
         if(pathHasParams) {
             routeDefinition.setHeader(Constants.CAPI_CONTEXT_HEADER, constant(runningApi.getContext()));
         }
-
         if(runningApi.isSecured()) {
             routeDefinition
                     .streamCaching()
@@ -171,9 +175,17 @@ public class CamelUtils {
                     .end()
                     .setId(routeID);
         }
-
         registerMetric(runningApi.getRouteId());
         zipkinTracer.addServerServiceMapping(runningApi.getContext() + runningApi.getPath(), routeID);
+    }
+
+    public void buildSuspendedRoute(RouteDefinition routeDefinition, String routeID) {
+        String toEndpoint = "http4:localhost:8380/error?throwExceptionOnFailure=false&connectTimeout=1000&bridgeEndpoint=true&copyHeaders=true&connectionClose=true";
+        routeDefinition
+                .setHeader(Constants.ROUTE_ID_HEADER, constant(routeID))
+                .toF(toEndpoint)
+                .end()
+                .setId(routeID);
     }
 
     public String normalizeRouteId(Api api, Path path) {
@@ -189,12 +201,31 @@ public class CamelUtils {
         if(routeToRemove != null) {
             try {
                 log.info("Removing route: {}", routeToRemove.getId());
-                camelContext.getRouteController().suspendRoute(runningApi.getRouteId());
+                camelContext.getRouteController().stopRoute(runningApi.getRouteId());
+                camelContext.removeRoute(runningApi.getRouteId());
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }
         } else {
             log.info("Route does not exist: {}" , runningApi.getRouteId());
+        }
+    }
+
+    public void addSuspendedRoute(RunningApi runningApi) {
+        try {
+            log.info("Add suspended route: {}", runningApi.getRouteId());
+            camelContext.addRoutes(new SuspendedRouteBuilder(camelContext, this, runningApi));
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    public void addActiveRoute(RunningApi runningApi) {
+        try {
+            log.info("Add route: {}", runningApi.getRouteId());
+            camelContext.addRoutes(new DynamicPathRouteBuilder(camelContext, this, runningApi));
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
         }
     }
 }

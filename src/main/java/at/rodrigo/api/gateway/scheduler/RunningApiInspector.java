@@ -4,10 +4,7 @@ import at.rodrigo.api.gateway.cache.RunningApiManager;
 import at.rodrigo.api.gateway.entity.RunningApi;
 import at.rodrigo.api.gateway.entity.SuspensionType;
 import at.rodrigo.api.gateway.utils.CamelUtils;
-import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.camel.CamelContext;
-import org.apache.camel.Route;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -17,9 +14,6 @@ import java.util.List;
 @Component
 @Slf4j
 public class RunningApiInspector {
-
-    @Autowired
-    CamelContext camelContext;
 
     @Autowired
     RunningApiManager runningApiManager;
@@ -35,6 +29,8 @@ public class RunningApiInspector {
             camelUtils.suspendRoute(runningApi);
             runningApi.setRemoved(true);
             runningApi.setSuspensionType(SuspensionType.ERROR);
+            runningApi.setSuspensionMessage("Your route was suspended due to errors calling the backend");
+            camelUtils.addSuspendedRoute(runningApi);
             runningApiManager.saveRunningApi(runningApi);
         }
     }
@@ -46,11 +42,14 @@ public class RunningApiInspector {
         for(RunningApi runningApi : removeddRunningApis) {
             if(runningApi.getCountBlockChecks() == runningApi.getUnblockAfterMinutes()) {
                 try {
-                    camelContext.getRouteController().resumeRoute(runningApi.getRouteId());
+                    //Remove suspended route
+                    camelUtils.suspendRoute(runningApi);
                     runningApi.setRemoved(false);
                     runningApi.setDisabled(false);
                     runningApi.setCountBlockChecks(0);
                     runningApi.setSuspensionType(null);
+                    runningApi.setSuspensionMessage(null);
+                    camelUtils.addActiveRoute(runningApi);
                     runningApiManager.saveRunningApi(runningApi);
                 } catch (Exception e) {
                     log.error(e.getMessage(), e);

@@ -82,6 +82,7 @@ public class ThrottlingInspector {
                                             runningApi.setRemoved(true);
                                             runningApi.setDisabled(true);
                                             runningApi.setSuspensionType(SuspensionType.THROTTLING);
+                                            runningApi.setSuspensionMessage("Your route was suspended because its configured to accept: " + throttlingPolicy.getMaxCallsAllowed() + " calls during a period of " + throttlingPolicy.getPeriodForMaxCalls());
                                             camelUtils.suspendRoute(runningApi);
                                             runningApiManager.saveRunningApi(runningApi);
                                         } else {

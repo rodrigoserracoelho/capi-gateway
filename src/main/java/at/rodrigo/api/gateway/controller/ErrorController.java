@@ -1,6 +1,7 @@
 package at.rodrigo.api.gateway.controller;
 
 import at.rodrigo.api.gateway.cache.RunningApiManager;
+import at.rodrigo.api.gateway.entity.RunningApi;
 import at.rodrigo.api.gateway.utils.Constants;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
@@ -42,18 +43,25 @@ public class ErrorController {
         JSONObject result = new JSONObject();
 
         String routeId = request.getHeader(Constants.ROUTE_ID_HEADER);
+        String errorMessage = null;
+        HttpStatus httpStatus = HttpStatus.TOO_MANY_REQUESTS;
+
         if(routeId != null) {
+            RunningApi runningApi = runningApiManager.getRunningApi(routeId);
+            if(runningApi.getSuspensionMessage() != null) {
+                errorMessage = runningApi.getSuspensionMessage();
+            }
             runningApiManager.blockApi(routeId);
         }
 
         try {
-            if(request.getHeader(Constants.REASON_CODE_HEADER) != null && request.getHeader(Constants.REASON_MESSAGE_HEADER) != null) {
+            if(request.getHeader(Constants.REASON_CODE_HEADER) != null && request.getHeader(Constants.REASON_MESSAGE_HEADER) != null && errorMessage == null) {
                 result.put(Constants.ERROR, request.getHeader(Constants.REASON_MESSAGE_HEADER));
                 int returnedCode = Integer.parseInt(request.getHeader(Constants.REASON_CODE_HEADER));
                 return new ResponseEntity<>(result.toString(), HttpStatus.valueOf(returnedCode));
             } else {
-                result.put(Constants.ERROR, "Bad request");
-                return new ResponseEntity<>(result.toString(), HttpStatus.BAD_REQUEST);
+                result.put(Constants.ERROR, errorMessage != null ? errorMessage : "Bad request");
+                return new ResponseEntity<>(result.toString(), httpStatus);
             }
         } catch (Exception e) {
             result.put(Constants.ERROR, e.getMessage());
