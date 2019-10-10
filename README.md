@@ -52,12 +52,14 @@
     }
 
 With the following configuration your service will be available at: http://localhost:8380/gateway/your-api/
+
 The following configuration will be applied:
 * secured: true - Meaning, that the CAPI Gateway expects a Bearer token sign by your account at auth0 with your audience in the token claims.
 * blockIfInError: true - Means that for instance if you send more than 10 times (maxAllowedFailedCalls) the wrong token your API will be suspended for 2 minutes (unblockAfterMinutes).
 * throttlingPolicy.maxCallsAllowed: 100 / throttlingPolicy.periodForMaxCalls - You can only call your API/Path 100 times per minute.
 * throttlingPolicy.applyPerPath: true - If true the policy will be applied by path and NOT the total amount for the API.
 * You can define your own paths, in case you dont have a Swagger Endpoint (Swagger 2/Open API), so if swagger: false, then CAPI will look for a list of PATH like the below example:
+
 
     {
         "_id" : "91ab7422-7d37-454b-9b33-6f3e345c8b66",
