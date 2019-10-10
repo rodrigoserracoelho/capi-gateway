@@ -26,31 +26,31 @@
 * Mongo
 
 ## Example of an API definition
-``
-{
-    "_id" : "02c04c49-3304-4dec-b5d4-446327f688f0",
-    "endpoint" : "localhost:8080",
-    "endpointType" : "HTTP",
-    "name" : "YOUR-API",
-    "secured" : true,
-    "jwsEndpoint" : "https://youruser.auth0.com/.well-known/jwks.json",
-    "context" : "your-api",
-    "swagger" : true,
-    "swaggerEndpoint" : "http://localhost:8080/v2/api-docs",
-    "audience" : [ 
-        "your-audience"
-    ],
-    "blockIfInError" : true,
-    "maxAllowedFailedCalls" : 10,
-    "unblockAfter" : true,
-    "unblockAfterMinutes" : 2,
-    "throttlingPolicy" : {
-        "maxCallsAllowed" : "100",
-        "periodForMaxCalls" : "60000",
-        "applyPerPath" : true
+
+    {
+        "_id" : "02c04c49-3304-4dec-b5d4-446327f688f0",
+        "endpoint" : "localhost:8080",
+        "endpointType" : "HTTP",
+        "name" : "YOUR-API",
+        "secured" : true,
+        "jwsEndpoint" : "https://youruser.auth0.com/.well-known/jwks.json",
+        "context" : "your-api",
+        "swagger" : true,
+        "swaggerEndpoint" : "http://localhost:8080/v2/api-docs",
+        "audience" : [ 
+            "your-audience"
+        ],
+        "blockIfInError" : true,
+        "maxAllowedFailedCalls" : 10,
+        "unblockAfter" : true,
+        "unblockAfterMinutes" : 2,
+        "throttlingPolicy" : {
+            "maxCallsAllowed" : "100",
+            "periodForMaxCalls" : "60000",
+            "applyPerPath" : true
+        }
     }
-}
-``
+
 With the following configuration your service will be available at: http://localhost:8380/gateway/your-api/
 The following configuration will be applied:
 * secured: true - Meaning, that the CAPI Gateway expects a Bearer token sign by your account at auth0 with your audience in the token claims.
@@ -58,25 +58,24 @@ The following configuration will be applied:
 * throttlingPolicy.maxCallsAllowed: 100 / throttlingPolicy.periodForMaxCalls - You can only call your API/Path 100 times per minute.
 * throttlingPolicy.applyPerPath: true - If true the policy will be applied by path and NOT the total amount for the API.
 * You can define your own paths, in case you dont have a Swagger Endpoint (Swagger 2/Open API), so if swagger: false, then CAPI will look for a list of PATH like the below example:
-``
-{
-    "_id" : "91ab7422-7d37-454b-9b33-6f3e345c8b66",
-    "endpoint" : "localhost:8080",
-    "endpointType" : "HTTPS",
-    "name" : "YOUR-CUSTOM-API",
-    "secured" : false,
-    "context" : "your-custom-api",
-    "blockIfInError" : false
-    "paths" : [ 
-        {
-		"verb" : "GET",
-		"path" : "/services/path"
-        },
-		{
-		"verb" : "POST",
-		"path" : "/services/path"
-        }
-    ],
-    "swagger" : false
-}
-``
+
+    {
+        "_id" : "91ab7422-7d37-454b-9b33-6f3e345c8b66",
+        "endpoint" : "localhost:8080",
+        "endpointType" : "HTTPS",
+        "name" : "YOUR-CUSTOM-API",
+        "secured" : false,
+        "context" : "your-custom-api",
+        "blockIfInError" : false
+        "paths" : [ 
+            {
+            "verb" : "GET",
+            "path" : "/services/path"
+            },
+            {
+            "verb" : "POST",
+            "path" : "/services/path"
+            }
+        ],
+        "swagger" : false
+    }
