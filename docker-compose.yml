@@ -1,13 +1,34 @@
 version: "2"
 services:
   capi:
+    container_name: capi
     image: surisoft/capi-gateway:1.0
     ports:
       - "8380:8380"
     links:
       - mongo
+      - zipkin
   mongo:
     container_name: capi-mongo
     image: mongo
     ports:
       - "27017:27017"
+  zipkin:
+    container_name: capi-zipkin
+    image: openzipkin/zipkin
+    ports:
+      - "9411:9411"
+  prometheus:
+    container_name: capi-prometheus
+    image: surisoft/prometheus:1.0
+    ports:
+      - "9090:9090"
+    links:
+      - capi
+  grafana:
+    container_name: capi-grafana
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    links:
+      - prometheus
