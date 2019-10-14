@@ -16,15 +16,6 @@
 * Key Manager (still researching over the best option).
 * Decent UI for management (Need time, any front enders out there?)
 
-## What we use:
-* Apache Camel
-* Spring boot
-* Hazelcast distributed cache
-* Prometheus
-* Grafana
-* Zipkin
-* Mongo
-
 ## Example of an API definition
 
     {
@@ -97,3 +88,11 @@ Docker compose will create instances of Grafana, Prometheus and Zipkin, but if y
 * api.gateway.zipkin.endpoint=http://zipkin:9411/api/v2/spans
 * api.gateway.grafana.endpoint=http://localhost:8080/grafana
 
+## What we use:
+* Apache Camel
+* Spring boot
+* Hazelcast distributed cache
+* Prometheus
+* Grafana
+* Zipkin
+* Mongo
