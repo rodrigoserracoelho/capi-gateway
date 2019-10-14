@@ -12,9 +12,16 @@ services:
       - api.gateway.prometheus.endpoint=http://prometheus:9090
       - api.gateway.zipkin.endpoint=http://zipkin:9411/api/v2/spans
       - api.gateway.grafana.endpoint=http://localhost:8080/grafana
+      - server.ssl.enabled=true
+      - server.ssl.key-store-type=PKCS12
+      - server.ssl.key-store=file:/keys/capi.p12
+      - server.ssl.key-store-password=capigateway
+      - server.ssl.key-alias=capigateway
     links:
       - mongo
       - zipkin
+    volumes:
+      - /home/user/projects/keys:/keys
   mongo:
     container_name: capi-mongo
     image: mongo
