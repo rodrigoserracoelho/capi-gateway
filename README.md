@@ -84,15 +84,18 @@ You can define your own paths, in case you dont have a Swagger Endpoint (Swagger
 
 ## Play with CAPI Gateway
 * Clone the project or just copy the docker-compose file.
-* $ sudo docker-compose up -d
+* Execute
+    $ sudo docker-compose up -d
 * Go to: http://localhost:8080/swagger-ui.html
-* Publish your first API: curl -X POST "http://localhost:8080/route/simple-rest" -H "accept: application/json" -H "Content-Type: application/json" -d "<your-api>" (see Example of an API definition)
+* Publish your first API: 
+    curl -X POST "http://localhost:8080/route/simple-rest" -H "accept: application/json" -H "Content-Type: application/json" -d "<your-api>" (see Example of an API definition)
 * Imagine that your context was: test and one of your GET path was /user you can then test: http://localhost:8380/gateway/test/user
 
 Docker compose will create instances of Grafana, Prometheus and Zipkin, but if you wish to use already existing instances you just need to change this environment variables:
-*api.gateway.prometheus.endpoint=http://prometheus:9090
-*api.gateway.zipkin.endpoint=http://zipkin:9411/api/v2/spans
-*api.gateway.grafana.endpoint=http://localhost:8080/grafana
+
+* api.gateway.prometheus.endpoint=http://prometheus:9090
+* api.gateway.zipkin.endpoint=http://zipkin:9411/api/v2/spans
+* api.gateway.grafana.endpoint=http://localhost:8080/grafana
 
 
 ## Installation
