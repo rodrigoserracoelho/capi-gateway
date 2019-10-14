@@ -24,7 +24,7 @@ services:
     volumes:
       # If you want to enable HTTPS, please map your local directory where you have the certificate for the CAPI spring boot application to be able to load it.
       # Also make sure that the server,ssl.key environment variables are not commented.
-      - /home/user/projects/keys:/keys
+      - /home/coelhro/projects/keys:/keys
   mongo:
     container_name: capi-mongo
     image: mongo
@@ -37,11 +37,13 @@ services:
       - "9411:9411"
   prometheus:
     container_name: capi-prometheus
-    image: surisoft/prometheus:1.0
+    image: prom/prometheus:latest
     ports:
       - "9090:9090"
     links:
       - capi
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
   grafana:
     container_name: capi-grafana
     image: grafana/grafana
@@ -68,4 +70,4 @@ services:
     volumes:
       # If you want to enable HTTPS, please map your local directory where you have the certificate for the CAPI spring boot application to be able to load it.
       # Also make sure that the server,ssl.key environment variables are not commented.
-      - /home/user/projects/keys:/keys
+      - /home/coelhro/projects/keys:/keys
