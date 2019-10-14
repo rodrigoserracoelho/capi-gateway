@@ -51,6 +51,8 @@ services:
       - "3000:3000"
     links:
       - prometheus
+    volumes:
+      - ./grafana-datasource.yml:/etc/grafana/provisioning/datasources/datasources.yml
   capi-rest:
     container_name: capi-rest
     image: surisoft/capi-gateway-rest:1.0
