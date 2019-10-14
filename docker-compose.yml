@@ -24,7 +24,7 @@ services:
     volumes:
       # If you want to enable HTTPS, please map your local directory where you have the certificate for the CAPI spring boot application to be able to load it.
       # Also make sure that the server,ssl.key environment variables are not commented.
-      - /home/coelhro/projects/keys:/keys
+      - /home/user/projects/keys:/keys
   mongo:
     container_name: capi-mongo
     image: mongo
@@ -68,4 +68,4 @@ services:
     volumes:
       # If you want to enable HTTPS, please map your local directory where you have the certificate for the CAPI spring boot application to be able to load it.
       # Also make sure that the server,ssl.key environment variables are not commented.
-      - /home/coelhro/projects/keys:/keys
+      - /home/user/projects/keys:/keys
