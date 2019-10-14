@@ -10,11 +10,11 @@
 * Automatically creates zipkin traceability.
 * Automatically creates a Grafana dashboard with panels per verb (only count total for the moment)
 * Throttling (You can apply per API or per API Path)
+* Easy Installation (See Play with CAPI Gateway)
 
 ## What we want to support:
 * Key Manager (still researching over the best option).
-* Decent UI for management.
-* Provide tools for easy installation 
+* Decent UI for management (Need time, any front enders out there?)
 
 ## What we use:
 * Apache Camel
@@ -97,11 +97,3 @@ Docker compose will create instances of Grafana, Prometheus and Zipkin, but if y
 * api.gateway.zipkin.endpoint=http://zipkin:9411/api/v2/spans
 * api.gateway.grafana.endpoint=http://localhost:8080/grafana
 
-
-## Installation
-
-    sudo docker run -it --rm --name capi-gateway-build -v "$PWD":/usr/src/capi -v "$HOME/.m2":/root/.m2 -v /root/.docker:/root/.docker -w /usr/src/capi maven:3.3-jdk-8 mvn compile -DskipTests jib:build
-
-## Run it
-
-    sudo docker-compose up -d    
