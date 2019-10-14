@@ -12,6 +12,7 @@ services:
       - api.gateway.prometheus.endpoint=http://prometheus:9090
       - api.gateway.zipkin.endpoint=http://zipkin:9411/api/v2/spans
       - api.gateway.grafana.endpoint=http://localhost:8080/grafana
+      # Optional, uncomment if you want to enable HTTPS on your CAPI Server, if so, please read also the volumes section of this service.
       - server.ssl.enabled=true
       - server.ssl.key-store-type=PKCS12
       - server.ssl.key-store=file:/keys/capi.p12
@@ -21,7 +22,9 @@ services:
       - mongo
       - zipkin
     volumes:
-      - /home/user/projects/keys:/keys
+      # If you want to enable HTTPS, please map your local directory where you have the certificate for the CAPI spring boot application to be able to load it.
+      # Also make sure that the server,ssl.key environment variables are not commented.
+      - /home/coelhro/projects/keys:/keys
   mongo:
     container_name: capi-mongo
     image: mongo
@@ -54,5 +57,15 @@ services:
     environment:
       - spring.data.mongodb.host=mongo
       - spring.data.mongodb.port=27017
+      # Optional, uncomment if you want to enable HTTPS on your CAPI Server Rest, if so, please read also the volumes section of this service.
+      - server.ssl.enabled=true
+      - server.ssl.key-store-type=PKCS12
+      - server.ssl.key-store=file:/keys/capi.p12
+      - server.ssl.key-store-password=capigateway
+      - server.ssl.key-alias=capigateway
     links:
       - mongo
+    volumes:
+      # If you want to enable HTTPS, please map your local directory where you have the certificate for the CAPI spring boot application to be able to load it.
+      # Also make sure that the server,ssl.key environment variables are not commented.
+      - /home/coelhro/projects/keys:/keys
