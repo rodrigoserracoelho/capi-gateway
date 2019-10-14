@@ -11,6 +11,7 @@
 * Automatically creates a Grafana dashboard with panels per verb (only count total for the moment)
 * Throttling (You can apply per API or per API Path)
 * Easy Installation (See Play with CAPI Gateway)
+* Easy enable HTTPS by adding your own certificate (read docker compose file)
 
 ## What we want to support:
 * Key Manager (still researching over the best option).
