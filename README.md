@@ -3,7 +3,7 @@
 
 ## Supports:
 * Easy deployment of Swagger and Open API endpoints.
-* Authorization (for the moment only supporting Auth0).
+* Authorization (for the moment only access_token and password grant_types).
 * Easy to block your API after N failed attempts. (you can define blocking strategies)
 * REST endpoint to manage your API's.
 * Automatically creates metrics for Prometheus (Verb granularity)
@@ -14,7 +14,7 @@
 * Easy enable HTTPS by adding your own certificate (read docker compose file)
 
 ## What we want to support:
-* Key Manager (still researching over the best option).
+* Implicit and Authorization code grant type.
 * Decent UI for management (Need time, any front enders out there?)
 
 ## Example of an API definition
@@ -25,13 +25,9 @@
         "endpointType" : "HTTP",
         "name" : "YOUR-API",
         "secured" : true,
-        "jwsEndpoint" : "https://youruser.auth0.com/.well-known/jwks.json",
         "context" : "your-api",
         "swagger" : true,
         "swaggerEndpoint" : "http://localhost:8080/v2/api-docs",
-        "audience" : [ 
-            "your-audience"
-        ],
         "blockIfInError" : true,
         "maxAllowedFailedCalls" : 10,
         "unblockAfter" : true,
@@ -109,6 +105,27 @@ Example of a capi client (with the password: web-client-secret)
         "refreshTokenValiditySeconds" : 14400,
         "autoApprove" : false
     }
+
+## Consuming your API
+If you wish to enable security for your API (api.secured = true), then you will need to subscribe your API with a "capi client".
+Your API ID will be added as an authority in the authorities list of your client.
+
+    "authorities" : [ 
+        {
+            "role" : "ROLE_USER",
+            "_class" : "org.springframework.security.core.authority.SimpleGrantedAuthority"
+        }, 
+        {
+            "role" : "ROLE_PUBLISHER",
+            "_class" : "org.springframework.security.core.authority.SimpleGrantedAuthority"
+        }, 
+        {
+            "role" : "YOUR API ID",
+            "_class" : "org.springframework.security.core.authority.SimpleGrantedAuthority"
+        }
+    ]
+
+Don't forget to request a new token, after subscribing.
 
 
 ## Play with CAPI Gateway
