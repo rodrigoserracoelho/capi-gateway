@@ -15,9 +15,13 @@ services:
       # Optional, uncomment if you want to enable HTTPS on your CAPI Server, if so, please read also the volumes section of this service.
       - server.ssl.enabled=true
       - server.ssl.key-store-type=PKCS12
-      - server.ssl.key-store=file:/keys/capi.p12
+      - server.ssl.key-store=/keys/capi.p12
       - server.ssl.key-store-password=capigateway
       - server.ssl.key-alias=capigateway
+      - server.ssl.trust-store=/keys/truststore.jks
+      - server.ssl.trust-store-password=capigateway
+      - spring.data.mongodb.host=mongo
+      - spring.data.mongodb.port=27017
     links:
       - mongo
       - zipkin

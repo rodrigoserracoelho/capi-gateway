@@ -97,15 +97,11 @@ public class CamelUtils {
         if(pathHasParams) {
             routeDefinition.setHeader(Constants.CAPI_CONTEXT_HEADER, constant(api.getContext()));
         }
-        DeadLetterChannelBuilder deadLetterChannelBuilder = new DeadLetterChannelBuilder();
-        deadLetterChannelBuilder.setDeadLetterUri("http4:localhost:8380/error");
-        routeDefinition.errorHandler(deadLetterChannelBuilder);
         if(api.isSecured()) {
             routeDefinition
                     .streamCaching()
-                    .setHeader(Constants.JSON_WEB_KEY_SIGNATURE_ENDPOINT_HEADER, constant(api.getJwsEndpoint()))
                     .setHeader(Constants.BLOCK_IF_IN_ERROR_HEADER, constant(api.isBlockIfInError()))
-                    .setHeader(Constants.AUDIENCE_HEADER, constant(api.getAudience()))
+                    .setHeader(Constants.API_ID_HEADER, constant(api.getId()))
                     .process(authProcessor)
                     .choice()
                     .when(header(Constants.VALID_HEADER).isEqualTo(true))
@@ -147,9 +143,8 @@ public class CamelUtils {
         if(runningApi.isSecured()) {
             routeDefinition
                     .streamCaching()
-                    .setHeader(Constants.JSON_WEB_KEY_SIGNATURE_ENDPOINT_HEADER, constant(runningApi.getJwsEndpoint()))
                     .setHeader(Constants.BLOCK_IF_IN_ERROR_HEADER, constant(runningApi.isBlockIfInError()))
-                    .setHeader(Constants.AUDIENCE_HEADER, constant(runningApi.getAudience()))
+                    .setHeader(Constants.API_ID_HEADER, constant(runningApi.getId()))
                     .process(authProcessor)
                     .choice()
                     .when(header(Constants.VALID_HEADER).isEqualTo(true))

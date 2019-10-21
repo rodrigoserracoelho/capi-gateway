@@ -7,8 +7,7 @@ public class Constants {
     }
 
     public static final String APPLICATION_NAME = "CAPI";
-    static final String FAIL_REST_ENDPOINT_OBJECT = "http4:%s?throwExceptionOnFailure=false&connectTimeout=1000&bridgeEndpoint=true&copyHeaders=true&connectionClose=true";
-    public static final String JSON_WEB_KEY_SIGNATURE_ENDPOINT_HEADER = "jwks-endpoint";
+    static final String FAIL_REST_ENDPOINT_OBJECT = "https4:%s?throwExceptionOnFailure=false&connectTimeout=1000&bridgeEndpoint=true&copyHeaders=true&connectionClose=true";
     public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String BLOCK_IF_IN_ERROR_HEADER = "block-if-in-error";
     public static final String VALID_HEADER = "valid";
@@ -22,5 +21,5 @@ public class Constants {
     static final String HTTPS4_PREFIX = "https4://";
     static final String HTTP4_CALL_PARAMS = "?throwExceptionOnFailure=false&bridgeEndpoint=true&copyHeaders=true&connectionClose=true";
     public static final String CAPI_CONTEXT_HEADER = "CapiContext";
-    public static final String AUDIENCE_HEADER = "audience";
+        public static final String API_ID_HEADER = "api_id";
 }
