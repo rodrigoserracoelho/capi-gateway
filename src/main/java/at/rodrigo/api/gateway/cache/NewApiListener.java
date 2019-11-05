@@ -41,11 +41,13 @@ public class NewApiListener implements EntryAddedListener<String, Api>, EntryRem
         log.info("One new API detected, deploying");
         try {
             Api api = event.getValue();
-            for(Path path : api.getPaths()) {
-                String routeID = camelUtils.normalizeRouteId(api, path);
-                if(camelContext.getRoute(routeID) != null) {
-                    camelContext.getRouteController().stopRoute(routeID);
-                    camelContext.removeRoute(routeID);
+            if(api.getPaths() != null) {
+                for(Path path : api.getPaths()) {
+                    String routeID = camelUtils.normalizeRouteId(api, path);
+                    if(camelContext.getRoute(routeID) != null) {
+                        camelContext.getRouteController().stopRoute(routeID);
+                        camelContext.removeRoute(routeID);
+                    }
                 }
             }
             if(api.getSwaggerEndpoint() == null) {
@@ -72,11 +74,13 @@ public class NewApiListener implements EntryAddedListener<String, Api>, EntryRem
         log.info("API deleted, undeploying");
         try {
             Api api = event.getValue();
-            for(Path path : api.getPaths()) {
-                String routeID = camelUtils.normalizeRouteId(api, path);
-                if(camelContext.getRoute(routeID) != null) {
-                    camelContext.getRouteController().stopRoute(routeID);
-                    camelContext.removeRoute(routeID);
+            if(api.getPaths() != null) {
+                for(Path path : api.getPaths()) {
+                    String routeID = camelUtils.normalizeRouteId(api, path);
+                    if(camelContext.getRoute(routeID) != null) {
+                        camelContext.getRouteController().stopRoute(routeID);
+                        camelContext.removeRoute(routeID);
+                    }
                 }
             }
         } catch (Exception e) {
