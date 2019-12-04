@@ -2,7 +2,7 @@ version: "2"
 services:
   capi:
     container_name: capi
-    image: surisoft/capi-gateway:1.0
+    image: surisoft/capi-gateway:1.1
     ports:
       - "8380:8380"
     environment:
