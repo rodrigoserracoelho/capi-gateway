@@ -132,7 +132,7 @@ Don't forget to request a new token, after subscribing.
 * Clone the project or just copy the docker-compose file.
 * Execute
     $ sudo docker-compose up -d
-* If you are starting a fresh Mongo instance you need to create a default client, in order to be able to request your first access token. Create a collection call "capi_client" and insert the document like defined in the Capi Client Object
+* If you are starting a fresh Mongo instance, a default CAPI Client will be created for you.
 * Request your first access token: curl -X POST https://localhost:8080/oauth/token -H 'Authorization: Basic d2ViLXB1Ymxpc2hlcjp3ZWItY2xpZW50LXNlY3JldA==' -H 'Content-Type: multipart/form-data;' -F grant_type=client_credentials -F 'response_type=access_token'
 * Go to: http://localhost:8080/swagger-ui.html
 * Authenticate with the token you obtained from the previous step. (Don't forget to specify: Bearer <the token>)
