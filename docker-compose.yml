@@ -22,6 +22,9 @@ services:
       - server.ssl.trust-store-password=capigateway
       - spring.data.mongodb.host=mongo
       - spring.data.mongodb.port=27017
+      - spring.data.mongodb.username=capi
+      - spring.data.mongodb.password=capi
+      - spring.data.mongodb.database=capi
     links:
       - mongo
       - zipkin
@@ -32,8 +35,15 @@ services:
   mongo:
     container_name: capi-mongo
     image: mongo
+    environment:
+      - MONGO_INITDB_DATABASE=capi
+      - MONGO_INITDB_ROOT_USERNAME=capi
+      - MONGO_INITDB_ROOT_PASSWORD=capi
     ports:
       - "27017:27017"
+    volumes:
+      - ./mongo/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js
+      - ./mongo/db/:/data/db/
   zipkin:
     container_name: capi-zipkin
     image: openzipkin/zipkin
@@ -65,12 +75,17 @@ services:
     environment:
       - spring.data.mongodb.host=mongo
       - spring.data.mongodb.port=27017
+      - spring.data.mongodb.username=capi
+      - spring.data.mongodb.password=capi
+      - spring.data.mongodb.database=capi
       # Optional, uncomment if you want to enable HTTPS on your CAPI Server Rest, if so, please read also the volumes section of this service.
       - server.ssl.enabled=true
       - server.ssl.key-store-type=PKCS12
       - server.ssl.key-store=/keys/capi.p12
       - server.ssl.key-store-password=capigateway
       - server.ssl.key-alias=capigateway
+      - server.ssl.trust-store=/keys/truststore.jks
+      - server.ssl.trust-store-password=capigateway
     links:
       - mongo
     volumes:
