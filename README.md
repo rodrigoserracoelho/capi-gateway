@@ -154,3 +154,33 @@ Docker compose will create instances of Grafana, Prometheus and Zipkin, but if y
 * Grafana
 * Zipkin
 * Mongo
+
+## Some load results (Calling a protected service)
+# Using apache benchmark on a 1 node docker container with SSL 
+Results for 20k calls 1000 concurrency level:
+Server Hostname:        localhost
+Server Port:            8380
+SSL/TLS Protocol:       TLSv1.2,ECDHE-RSA-AES256-GCM-SHA384,2048,256
+Server Temp Key:        ECDH P-256 256 bits
+TLS Server Name:        localhost
+
+Document Path:          /gateway/myctx/internal/12345
+Document Length:        33 bytes
+
+Concurrency Level:      1000
+Time taken for tests:   65.563 seconds
+Complete requests:      20000
+Failed requests:        0
+Total transferred:      6560000 bytes
+HTML transferred:       660000 bytes
+Requests per second:    305.05 [#/sec] (mean)
+Time per request:       3278.129 [ms] (mean)
+Time per request:       3.278 [ms] (mean, across all concurrent requests)
+Transfer rate:          97.71 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        7 2431 1388.0   2260   18381
+Processing:     5  798 883.7    684   13862
+Waiting:        3  796 883.3    681   13862
+Total:         58 3229 1683.6   3091   18639
