@@ -2,7 +2,7 @@ version: "2"
 services:
   capi:
     container_name: capi
-    image: surisoft/capi-gateway:1.1
+    image: surisoft/capi-gateway:1.1.2
     ports:
       - "8380:8380"
     environment:
@@ -69,7 +69,7 @@ services:
       - ./grafana-datasource.yml:/etc/grafana/provisioning/datasources/datasources.yml
   capi-rest:
     container_name: capi-rest
-    image: surisoft/capi-gateway-rest:1.0
+    image: surisoft/capi-gateway-rest:1.2.1
     ports:
       - "8080:8080"
     environment:
