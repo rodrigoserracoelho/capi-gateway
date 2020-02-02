@@ -13,6 +13,7 @@ import org.apache.camel.model.rest.RestParamType;
 import org.apache.http.conn.HttpHostConnectException;
 import org.springframework.http.HttpStatus;
 
+import javax.net.ssl.SSLHandshakeException;
 import java.net.UnknownHostException;
 import java.util.List;
 
@@ -72,6 +73,7 @@ public class DynamicSwaggerRouteBuilder extends RouteBuilder {
 
                 camelUtils.buildOnExceptionDefinition(routeDefinition, HttpHostConnectException.class, true, HttpStatus.SERVICE_UNAVAILABLE, "API NOT AVAILABLE", routeID);
                 camelUtils.buildOnExceptionDefinition(routeDefinition, UnknownHostException.class, true, HttpStatus.SERVICE_UNAVAILABLE, "API ENDPOINT WITH WRONG HOST", routeID);
+                camelUtils.buildOnExceptionDefinition(routeDefinition, SSLHandshakeException.class, true, HttpStatus.SERVICE_UNAVAILABLE, "UNKOWN API", routeID);
                 if(paramList.isEmpty()) {
                     camelUtils.buildRoute(routeDefinition, routeID, api, path, false);
                 } else {

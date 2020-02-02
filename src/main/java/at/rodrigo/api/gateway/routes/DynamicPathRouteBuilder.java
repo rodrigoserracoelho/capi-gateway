@@ -10,6 +10,7 @@ import org.apache.camel.model.rest.RestParamType;
 import org.apache.http.conn.HttpHostConnectException;
 import org.springframework.http.HttpStatus;
 
+import javax.net.ssl.SSLHandshakeException;
 import java.net.UnknownHostException;
 import java.util.List;
 
@@ -59,6 +60,7 @@ public class DynamicPathRouteBuilder extends RouteBuilder {
         }
         camelUtils.buildOnExceptionDefinition(routeDefinition, HttpHostConnectException.class, true, HttpStatus.SERVICE_UNAVAILABLE, "API NOT AVAILABLE", runningApi.getRouteId());
         camelUtils.buildOnExceptionDefinition(routeDefinition, UnknownHostException.class, true, HttpStatus.SERVICE_UNAVAILABLE, "API ENDPOINT WITH WRONG HOST", runningApi.getRouteId());
+        camelUtils.buildOnExceptionDefinition(routeDefinition, SSLHandshakeException.class, true, HttpStatus.SERVICE_UNAVAILABLE, "UNKOWN API", runningApi.getRouteId());
         if(paramList.isEmpty()) {
             camelUtils.buildRoute(routeDefinition, runningApi.getRouteId(), runningApi, false);
         } else {
