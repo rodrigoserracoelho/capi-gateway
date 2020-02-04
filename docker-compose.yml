@@ -12,6 +12,7 @@ services:
       - api.gateway.prometheus.endpoint=http://prometheus:9090
       - api.gateway.zipkin.endpoint=http://zipkin:9411/api/v2/spans
       - api.gateway.grafana.endpoint=http://localhost:8080/grafana
+      - api.gateway.error.endpoint=localhost:8380/error
       # Optional, uncomment if you want to enable HTTPS on your CAPI Server, if so, please read also the volumes section of this service.
       - server.ssl.enabled=true
       - server.ssl.key-store-type=PKCS12
