@@ -8,7 +8,6 @@ import at.rodrigo.api.gateway.entity.RunningApi;
 import at.rodrigo.api.gateway.processor.AuthProcessor;
 import at.rodrigo.api.gateway.processor.MetricsProcessor;
 import at.rodrigo.api.gateway.processor.PathVariableProcessor;
-import at.rodrigo.api.gateway.processor.StarterProcessor;
 import at.rodrigo.api.gateway.routes.DynamicPathRouteBuilder;
 import at.rodrigo.api.gateway.routes.SuspendedRouteBuilder;
 import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
@@ -33,6 +32,15 @@ import static org.apache.camel.language.constant.ConstantLanguage.constant;
 @Slf4j
 public class CamelUtils {
 
+    @Value("${api.gateway.traffic.inspector.enabled}")
+    private boolean trafficInspectorEnabled;
+
+    @Value("${api.gateway.traffic.inspector.kafka.topic}")
+    private String trafficInspectorKafkaTopic;
+
+    @Value("${api.gateway.traffic.inspector.kafka.broker}")
+    private String trafficInspectorKafkaBroker;
+
     @Value("${api.gateway.error.endpoint}")
     private String apiGatewayErrorEndpoint;
 
@@ -44,9 +52,6 @@ public class CamelUtils {
 
     @Autowired
     private MetricsProcessor metricsProcessor;
-
-    @Autowired
-    private StarterProcessor starterProcessor;
 
     @Autowired
     private CompositeMeterRegistry meterRegistry;
@@ -61,9 +66,7 @@ public class CamelUtils {
     private CamelContext camelContext;
 
     private void registerMetric(String routeID) {
-
         meterRegistry.counter(routeID);
-
     }
 
     public List<String> evaluatePath(String fullPath) {
@@ -100,6 +103,11 @@ public class CamelUtils {
         if(pathHasParams) {
             routeDefinition.setHeader(Constants.CAPI_CONTEXT_HEADER, constant(api.getContext()));
         }
+        if(trafficInspectorEnabled) {
+            routeDefinition
+                    .setBody(constant(routeID))
+                    .to("kafka:" + trafficInspectorKafkaTopic + "?brokers=" + trafficInspectorKafkaBroker);
+        }
         if(api.isSecured()) {
             routeDefinition
                     .streamCaching()
@@ -124,12 +132,7 @@ public class CamelUtils {
         } else {
 
             routeDefinition
-                    .process(starterProcessor)
                     .streamCaching()
-                    .onCompletion()
-                        .setBody(constant(routeID + ":" + header("CALL_ID") + ":" + header("START_TIME")))
-                        .to("kafka:test?brokers=172.17.0.1:9092")
-                    .end()
                     .process(pathProcessor)
                     .toF(toEndpoint)
                     .process(metricsProcessor)
@@ -148,6 +151,11 @@ public class CamelUtils {
         String toEndpoint = pathHasParams ? protocol + runningApi.getEndpoint() + Constants.HTTP4_CALL_PARAMS : protocol + runningApi.getEndpoint() + "/" + runningApi.getPath() + Constants.HTTP4_CALL_PARAMS;
         if(pathHasParams) {
             routeDefinition.setHeader(Constants.CAPI_CONTEXT_HEADER, constant(runningApi.getContext()));
+        }
+        if(trafficInspectorEnabled) {
+            routeDefinition
+                    .setBody(constant(routeID))
+                    .to("kafka:" + trafficInspectorKafkaTopic + "?brokers=" + trafficInspectorKafkaBroker);
         }
         if(runningApi.isSecured()) {
             routeDefinition

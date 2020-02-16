@@ -13,7 +13,10 @@ services:
       - api.gateway.zipkin.endpoint=http://zipkin:9411/api/v2/spans
       - api.gateway.grafana.endpoint=http://localhost:8080/grafana
       - api.gateway.error.endpoint=localhost:8380/error
-      # Optional, uncomment if you want to enable HTTPS on your CAPI Server, if so, please read also the volumes section of this service.
+      - api.gateway.traffic.inspector.enabled=true
+      - api.gateway.traffic.inspector.kafka.topic=capi-traffic-inspector
+      - api.gateway.traffic.inspector.kafka.groupId=capiGroup
+      - api.gateway.traffic.inspector.kafka.broker=localhost:9092
       - server.ssl.enabled=true
       - server.ssl.key-store-type=PKCS12
       - server.ssl.key-store=/keys/capi.p12
