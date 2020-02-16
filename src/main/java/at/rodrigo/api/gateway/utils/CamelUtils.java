@@ -8,13 +8,13 @@ import at.rodrigo.api.gateway.entity.RunningApi;
 import at.rodrigo.api.gateway.processor.AuthProcessor;
 import at.rodrigo.api.gateway.processor.MetricsProcessor;
 import at.rodrigo.api.gateway.processor.PathVariableProcessor;
+import at.rodrigo.api.gateway.processor.StarterProcessor;
 import at.rodrigo.api.gateway.routes.DynamicPathRouteBuilder;
 import at.rodrigo.api.gateway.routes.SuspendedRouteBuilder;
 import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Route;
-import org.apache.camel.builder.DeadLetterChannelBuilder;
 import org.apache.camel.model.RouteDefinition;
 import org.apache.camel.zipkin.ZipkinTracer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +44,9 @@ public class CamelUtils {
 
     @Autowired
     private MetricsProcessor metricsProcessor;
+
+    @Autowired
+    private StarterProcessor starterProcessor;
 
     @Autowired
     private CompositeMeterRegistry meterRegistry;
@@ -119,8 +122,14 @@ public class CamelUtils {
                     .end()
                     .setId(routeID);
         } else {
+
             routeDefinition
+                    .process(starterProcessor)
                     .streamCaching()
+                    .onCompletion()
+                        .setBody(constant(routeID + ":" + header("CALL_ID") + ":" + header("START_TIME")))
+                        .to("kafka:test?brokers=172.17.0.1:9092")
+                    .end()
                     .process(pathProcessor)
                     .toF(toEndpoint)
                     .process(metricsProcessor)
