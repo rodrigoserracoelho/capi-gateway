@@ -3,46 +3,52 @@ package at.rodrigo.api.gateway.routes;
 import at.rodrigo.api.gateway.cache.ThrottlingManager;
 import at.rodrigo.api.gateway.entity.Api;
 import at.rodrigo.api.gateway.entity.Path;
+import at.rodrigo.api.gateway.repository.ApiRepository;
 import at.rodrigo.api.gateway.utils.CamelUtils;
 import at.rodrigo.api.gateway.utils.GrafanaUtils;
-import org.apache.camel.CamelContext;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.RouteDefinition;
 import org.apache.camel.model.rest.RestOperationParamDefinition;
 import org.apache.camel.model.rest.RestParamType;
 import org.apache.http.conn.HttpHostConnectException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
 
 import java.net.UnknownHostException;
 import java.util.List;
 
-public class DynamicRestRouteBuilder extends RouteBuilder {
+@Component
+@Slf4j
+public class SimpleRestRoutePublisher extends RouteBuilder {
 
-    private Api api;
+    @Autowired
+    private ApiRepository apiRepository;
 
+    @Autowired
     private CamelUtils camelUtils;
 
+    @Autowired
     private GrafanaUtils grafanaUtils;
 
+    @Autowired
     private ThrottlingManager throttlingManager;
-
-    public DynamicRestRouteBuilder(CamelContext context, CamelUtils camelUtils, GrafanaUtils grafanaUtils, ThrottlingManager throttlingManager, Api api) {
-        super(context);
-        this.api = api;
-        this.camelUtils = camelUtils;
-        this.grafanaUtils = grafanaUtils;
-        this.throttlingManager = throttlingManager;
-    }
 
     @Override
     public void configure() {
-        log.info("Starting configuration of a Simple Route");
 
-        try {
-            addRoutes(api);
-        } catch(Exception e) {
-            log.error(e.getMessage(), e);
+        log.info("Starting configuration of Simple Routes");
+
+        List<Api> apiList = apiRepository.findAllBySwagger(false);
+        for(Api api : apiList) {
+            try {
+                addRoutes(api);
+            } catch(Exception e) {
+                log.error(e.getMessage(), e);
+            }
         }
+
 
     }
 

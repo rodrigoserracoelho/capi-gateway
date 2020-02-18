@@ -1,51 +1,67 @@
 package at.rodrigo.api.gateway.routes;
 
+
 import at.rodrigo.api.gateway.cache.ThrottlingManager;
 import at.rodrigo.api.gateway.entity.Api;
 import at.rodrigo.api.gateway.entity.Path;
+import at.rodrigo.api.gateway.parser.SwaggerParser;
+import at.rodrigo.api.gateway.repository.ApiRepository;
 import at.rodrigo.api.gateway.utils.CamelUtils;
 import at.rodrigo.api.gateway.utils.GrafanaUtils;
-import org.apache.camel.CamelContext;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.RouteDefinition;
 import org.apache.camel.model.rest.RestOperationParamDefinition;
 import org.apache.camel.model.rest.RestParamType;
 import org.apache.http.conn.HttpHostConnectException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
 
 import java.net.UnknownHostException;
 import java.util.List;
 
-public class DynamicSwaggerRouteBuilder extends RouteBuilder {
+@Component
+@Slf4j
+public class SwaggerRoutePublisher extends RouteBuilder {
 
-    private Api api;
+    @Autowired
+    private ApiRepository apiRepository;
 
+    @Autowired
+    private SwaggerParser swaggerParser;
+
+    @Autowired
     private CamelUtils camelUtils;
 
+    @Autowired
     private GrafanaUtils grafanaUtils;
 
+    @Autowired
     private ThrottlingManager throttlingManager;
-
-    public DynamicSwaggerRouteBuilder(CamelContext context, CamelUtils camelUtils, GrafanaUtils grafanaUtils, ThrottlingManager throttlingManager, Api api) {
-        super(context);
-        this.api = api;
-        this.camelUtils = camelUtils;
-        this.grafanaUtils = grafanaUtils;
-        this.throttlingManager = throttlingManager;
-    }
 
     @Override
     public void configure() {
-        try {
-            addRoutes(api);
-        } catch(Exception e) {
-            log.error(e.getMessage(), e);
+
+        log.info("Starting configuration of Swagger Routes");
+
+        List<Api> apiList = apiRepository.findAllBySwagger(true);
+        for(Api api : apiList) {
+            try {
+                addRoutes(api);
+            } catch(Exception e) {
+                log.error(e.getMessage(), e);
+            }
         }
     }
 
     void addRoutes(Api api) throws Exception {
-        for(Path path : api.getPaths()) {
-            if(!path.getPath().equals("/error")) {
+
+        List<Path> pathList = swaggerParser.parse(api.getSwaggerEndpoint());
+        api.setPaths(pathList);
+
+        for(Path path : pathList) {
+            //if(!path.getPath().equals("/error")) {
                 RestOperationParamDefinition restParamDefinition = new RestOperationParamDefinition();
                 List<String> paramList = camelUtils.evaluatePath(path.getPath());
 
@@ -82,7 +98,7 @@ public class DynamicSwaggerRouteBuilder extends RouteBuilder {
                     }
                     camelUtils.buildRoute(routeDefinition, routeID, api, path, true);
                 }
-            }
+            //}
         }
         throttlingManager.applyThrottling(api);
         grafanaUtils.addToGrafana(api);

@@ -13,13 +13,13 @@ import org.springframework.http.HttpStatus;
 import java.net.UnknownHostException;
 import java.util.List;
 
-public class DynamicPathRouteBuilder extends RouteBuilder {
+public class PathRouteRepublisher extends RouteBuilder {
 
     private RunningApi runningApi;
 
     private CamelUtils camelUtils;
 
-    public DynamicPathRouteBuilder(CamelContext context, CamelUtils camelUtils, RunningApi runningApi) {
+    public PathRouteRepublisher(CamelContext context, CamelUtils camelUtils, RunningApi runningApi) {
         super(context);
         this.runningApi = runningApi;
         this.camelUtils = camelUtils;

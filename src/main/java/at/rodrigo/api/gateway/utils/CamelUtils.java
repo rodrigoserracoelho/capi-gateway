@@ -8,7 +8,7 @@ import at.rodrigo.api.gateway.entity.RunningApi;
 import at.rodrigo.api.gateway.processor.AuthProcessor;
 import at.rodrigo.api.gateway.processor.MetricsProcessor;
 import at.rodrigo.api.gateway.processor.PathVariableProcessor;
-import at.rodrigo.api.gateway.routes.DynamicPathRouteBuilder;
+import at.rodrigo.api.gateway.routes.PathRouteRepublisher;
 import at.rodrigo.api.gateway.routes.SuspendedRouteBuilder;
 import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
 import lombok.extern.slf4j.Slf4j;
@@ -234,7 +234,7 @@ public class CamelUtils {
     public void addActiveRoute(RunningApi runningApi) {
         try {
             log.info("Add route: {}", runningApi.getRouteId());
-            camelContext.addRoutes(new DynamicPathRouteBuilder(camelContext, this, runningApi));
+            camelContext.addRoutes(new PathRouteRepublisher(camelContext, this, runningApi));
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }

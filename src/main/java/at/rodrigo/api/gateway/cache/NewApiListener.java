@@ -3,8 +3,8 @@ package at.rodrigo.api.gateway.cache;
 import at.rodrigo.api.gateway.entity.Api;
 import at.rodrigo.api.gateway.entity.Path;
 import at.rodrigo.api.gateway.parser.SwaggerParser;
-import at.rodrigo.api.gateway.routes.DynamicRestRouteBuilder;
-import at.rodrigo.api.gateway.routes.DynamicSwaggerRouteBuilder;
+import at.rodrigo.api.gateway.routes.SimpleRestRouteRepublisher;
+import at.rodrigo.api.gateway.routes.SwaggerRouteRepublisher;
 import at.rodrigo.api.gateway.utils.CamelUtils;
 import at.rodrigo.api.gateway.utils.GrafanaUtils;
 import com.hazelcast.core.EntryEvent;
@@ -51,7 +51,7 @@ public class NewApiListener implements EntryAddedListener<String, Api>, EntryRem
                 }
             }
             if(api.getSwaggerEndpoint() == null) {
-                camelContext.addRoutes(new DynamicRestRouteBuilder(camelContext, camelUtils, grafanaUtils, throttlingManager, api));
+                camelContext.addRoutes(new SimpleRestRouteRepublisher(camelContext, camelUtils, grafanaUtils, throttlingManager, api));
             } else {
                 List<Path> pathList = swaggerParser.parse(api.getSwaggerEndpoint());
                 for(Path path : pathList) {
@@ -62,7 +62,7 @@ public class NewApiListener implements EntryAddedListener<String, Api>, EntryRem
                     }
                 }
                 api.setPaths(pathList);
-                camelContext.addRoutes(new DynamicSwaggerRouteBuilder(camelContext, camelUtils, grafanaUtils, throttlingManager, api));
+                camelContext.addRoutes(new SwaggerRouteRepublisher(camelContext, camelUtils, grafanaUtils, throttlingManager, api));
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
