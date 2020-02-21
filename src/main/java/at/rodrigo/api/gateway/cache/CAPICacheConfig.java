@@ -1,15 +1,15 @@
 package at.rodrigo.api.gateway.cache;
 
-import com.hazelcast.config.Config;
-import com.hazelcast.config.EvictionPolicy;
-import com.hazelcast.config.MapConfig;
-import com.hazelcast.config.MaxSizeConfig;
+import com.hazelcast.config.*;
 
 public class CAPICacheConfig extends Config {
 
-    public CAPICacheConfig() {
+    public CAPICacheConfig(String environment) {
         super();
+        GroupConfig groupConfig = new GroupConfig();
+        groupConfig.setName(environment);
         setInstanceName("running-apis-instance")
+                .setGroupConfig(groupConfig)
                 .addMapConfig(
                         new MapConfig()
                                 .setName("running-apis-configuration")

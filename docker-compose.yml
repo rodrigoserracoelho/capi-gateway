@@ -6,6 +6,7 @@ services:
     ports:
       - "8380:8380"
     environment:
+      - spring.profiles.active=tst
       - api.gateway.api.running.inspector.period=60000
       - api.gateway.api.throttling.inspector.period=5000
       - api.gateway.grafana.create.panels=false
