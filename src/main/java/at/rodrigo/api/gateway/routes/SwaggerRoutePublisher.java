@@ -13,12 +13,9 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.RouteDefinition;
 import org.apache.camel.model.rest.RestOperationParamDefinition;
 import org.apache.camel.model.rest.RestParamType;
-import org.apache.http.conn.HttpHostConnectException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
-import java.net.UnknownHostException;
 import java.util.List;
 
 @Component
@@ -86,8 +83,9 @@ public class SwaggerRoutePublisher extends RouteBuilder {
                         throw new Exception("No verb available");
                 }
 
-                camelUtils.buildOnExceptionDefinition(routeDefinition, HttpHostConnectException.class, true, HttpStatus.SERVICE_UNAVAILABLE, "API NOT AVAILABLE", routeID);
-                camelUtils.buildOnExceptionDefinition(routeDefinition, UnknownHostException.class, true, HttpStatus.SERVICE_UNAVAILABLE, "API ENDPOINT WITH WRONG HOST", routeID);
+                //camelUtils.buildOnExceptionDefinition(routeDefinition, HttpHostConnectException.class, true, HttpStatus.SERVICE_UNAVAILABLE, "API NOT AVAILABLE", routeID);
+                //camelUtils.buildOnExceptionDefinition(routeDefinition, UnknownHostException.class, true, HttpStatus.SERVICE_UNAVAILABLE, "API ENDPOINT WITH WRONG HOST", routeID);
+                camelUtils.buildOnExceptionDefinition(routeDefinition, api, routeID);
                 if(paramList.isEmpty()) {
                     camelUtils.buildRoute(routeDefinition, routeID, api, path, false);
                 } else {

@@ -37,8 +37,8 @@ public class TestLoadBalancer extends RouteBuilder {
         String routeID = UUID.randomUUID().toString();
         Collection<String> hostList = new ArrayList<>();
 
-        //hostList.add("http://capi.ecdevops.eu:9010/exposed?bridgeEndpoint=true&http.connectionRequestTimeout=10000&lb=1&throwExceptionOnFailure=false&connectionClose=true");
-        //hostList.add("http://capi.ecdevops.eu:9012/exposed?bridgeEndpoint=true&http.connectionRequestTimeout=10000&lb=2&throwExceptionOnFailure=false&connectionClose=true");
+        hostList.add("http://capi.ecdevops.eu:9011/exposed?bridgeEndpoint=true&throwExceptionOnFailure=false&connectTimeout=5000&socketTimeout=10000&sleepValue=0&lb=2&connectionClose=true");
+        hostList.add("http://capi.ecdevops.eu:9010/exposed?bridgeEndpoint=true&throwExceptionOnFailure=false&connectTimeout=10000&socketTimeout=10000&sleepValue=5000&lb=1&connectionClose=true");
 
         RouteDefinition routeDefinition = rest().get(context).route();
 
@@ -49,13 +49,16 @@ public class TestLoadBalancer extends RouteBuilder {
                 .setHeader("showInternal", constant(internalMessageVisible))
                 .process(routeErrorProcessor)
                 .to("https://localhost:8380/error?bridgeEndpoint=true&throwExceptionOnFailure=false");
-
+        String hostsCommaSeparated = String.join(",", hostList);
         routeDefinition
-                .loadBalance().failover(2, true, true)
-                //.roundRobin()
-                //.to(hostList.stream().collect(Collectors.joining(",")));
+                .loadBalance().roundRobin()
                 .to("http://capi.ecdevops.eu:9011/exposed?bridgeEndpoint=true&throwExceptionOnFailure=false&connectTimeout=5000&socketTimeout=10000&sleepValue=0&lb=2&connectionClose=true")
                 .to("http://capi.ecdevops.eu:9010/exposed?bridgeEndpoint=true&throwExceptionOnFailure=false&connectTimeout=10000&socketTimeout=10000&sleepValue=5000&lb=1&connectionClose=true")
+                //.roundRobin()
+                //.to(hostsCommaSeparated)
+
+                //.to("http://capi.ecdevops.eu:9011/exposed?bridgeEndpoint=true&throwExceptionOnFailure=false&connectTimeout=5000&socketTimeout=10000&sleepValue=0&lb=2&connectionClose=true")
+                //.to("http://capi.ecdevops.eu:9010/exposed?bridgeEndpoint=true&throwExceptionOnFailure=false&connectTimeout=10000&socketTimeout=10000&sleepValue=5000&lb=1&connectionClose=true")
         .setId(routeID);
         zipkinTracer.addServerServiceMapping(context, routeID);
 

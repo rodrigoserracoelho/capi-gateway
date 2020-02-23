@@ -37,7 +37,10 @@ public class RunningApiManager {
 
         runningApi.setContext(api.getContext());
         runningApi.setAudience(api.getAudience());
-        runningApi.setEndpoint(api.getEndpoint());
+        /***
+         * REFACTOR
+         */
+        runningApi.setEndpoint(api.getEndpoints().get(0));
         runningApi.setJwsEndpoint(api.getJwsEndpoint());
         runningApi.setEndpointType(api.getEndpointType());
         runningApi.setSecured(api.isSecured());

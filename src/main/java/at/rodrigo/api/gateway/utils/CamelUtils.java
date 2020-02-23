@@ -8,6 +8,7 @@ import at.rodrigo.api.gateway.entity.RunningApi;
 import at.rodrigo.api.gateway.processor.AuthProcessor;
 import at.rodrigo.api.gateway.processor.MetricsProcessor;
 import at.rodrigo.api.gateway.processor.PathVariableProcessor;
+import at.rodrigo.api.gateway.processor.RouteErrorProcessor;
 import at.rodrigo.api.gateway.routes.PathRouteRepublisher;
 import at.rodrigo.api.gateway.routes.SuspendedRouteBuilder;
 import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
@@ -65,6 +66,12 @@ public class CamelUtils {
     @Autowired
     private CamelContext camelContext;
 
+    @Autowired
+    private HttpUtils httpUtils;
+
+    @Autowired
+    private RouteErrorProcessor routeErrorProcessor;
+
     private void registerMetric(String routeID) {
         meterRegistry.counter(routeID);
     }
@@ -97,9 +104,40 @@ public class CamelUtils {
                 .end();
     }
 
+    public void buildOnExceptionDefinition(RouteDefinition routeDefinition, Api api, String routeID) {
+        routeDefinition
+                .onException(Exception.class)
+                .handled(true)
+                .setHeader(Constants.ERROR_API_SHOW_TRACE_ID, constant(api.isZipkinTraceIdVisible()))
+                .setHeader(Constants.ERROR_API_SHOW_INTERNAL_ERROR_MESSAGE, constant(api.isInternalExceptionMessageVisible()))
+                .setHeader(Constants.ERROR_API_SHOW_INTERNAL_ERROR_CLASS, constant(api.isInternalExceptionVisible()))
+                .process(routeErrorProcessor)
+                .setHeader(Constants.ROUTE_ID_HEADER, constant(routeID))
+                .toF(Constants.FAIL_REST_ENDPOINT_OBJECT, apiGatewayErrorEndpoint)
+                .removeHeader(Constants.ERROR_API_SHOW_TRACE_ID)
+                .removeHeader(Constants.ERROR_API_SHOW_INTERNAL_ERROR_MESSAGE)
+                .removeHeader(Constants.ERROR_API_SHOW_INTERNAL_ERROR_CLASS)
+                .removeHeader(Constants.ROUTE_ID_HEADER)
+                .end();
+    }
+
     public void buildRoute(RouteDefinition routeDefinition, String routeID, Api api, Path path, boolean pathHasParams) {
+
         String protocol = api.getEndpointType().equals(EndpointType.HTTP) ? Constants.HTTP4_PREFIX : Constants.HTTPS4_PREFIX;
-        String toEndpoint = pathHasParams ? protocol + api.getEndpoint() + Constants.HTTP4_CALL_PARAMS : protocol + api.getEndpoint() + "/" + path.getPath() + Constants.HTTP4_CALL_PARAMS;
+
+        List<String> endpointList = new ArrayList<>();
+        for(String endpoint : api.getEndpoints()) {
+            endpoint = pathHasParams ? protocol + endpoint + Constants.HTTP4_CALL_PARAMS : protocol + endpoint + httpUtils.setPath(path.getPath()) + Constants.HTTP4_CALL_PARAMS;
+            if(api.getConnectTimeout() > -1) {
+                httpUtils.setHttpConnectTimeout(endpoint, api.getConnectTimeout());
+            }
+            if(api.getSocketTimeout() > -1) {
+                httpUtils.setHttpSocketTimeout(endpoint, api.getConnectTimeout());
+            }
+            endpointList.add(endpoint);
+        }
+
+        String[] endpointArray = endpointList.stream().toArray(n -> new String[n]);
         if(pathHasParams) {
             routeDefinition.setHeader(Constants.CAPI_CONTEXT_HEADER, constant(api.getContext()));
         }
@@ -110,32 +148,23 @@ public class CamelUtils {
         }
         if(api.isSecured()) {
             routeDefinition
-                    .streamCaching()
                     .setHeader(Constants.BLOCK_IF_IN_ERROR_HEADER, constant(api.isBlockIfInError()))
                     .setHeader(Constants.API_ID_HEADER, constant(api.getId()))
                     .process(authProcessor)
-                    .choice()
-                    .when(header(Constants.VALID_HEADER).isEqualTo(true))
                     .process(pathProcessor)
-                    .toF(toEndpoint)
-                    .removeHeader(Constants.VALID_HEADER)
                     .process(metricsProcessor)
-                    .otherwise()
-                    .setHeader(Constants.ROUTE_ID_HEADER, constant(routeID))
-                    .toF(Constants.FAIL_REST_ENDPOINT_OBJECT, apiGatewayErrorEndpoint)
-                    .removeHeader(Constants.REASON_CODE_HEADER)
-                    .removeHeader(Constants.REASON_MESSAGE_HEADER)
-                    .removeHeader(Constants.ROUTE_ID_HEADER)
-                    .process(metricsProcessor)
+                    .loadBalance()
+                    .roundRobin()
+                    .to(endpointArray)
                     .end()
                     .setId(routeID);
         } else {
-
             routeDefinition
-                    .streamCaching()
                     .process(pathProcessor)
-                    .toF(toEndpoint)
                     .process(metricsProcessor)
+                    .loadBalance()
+                    .roundRobin()
+                    .to(endpointArray)
                     .end()
                     .setId(routeID);
         }
@@ -238,5 +267,15 @@ public class CamelUtils {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
+    }
+
+    private String buildToEndpoint(List<String> endpointList) {
+        String endpoints = "";
+        for(String endpoint : endpointList) {
+            endpoints =  endpoints.isEmpty() ? endpoint : endpoints + "," + endpoint;
+            log.info(endpoints);
+        }
+
+        return endpoints;
     }
 }
