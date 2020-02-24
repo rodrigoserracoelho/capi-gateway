@@ -7,10 +7,7 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.RouteDefinition;
 import org.apache.camel.model.rest.RestOperationParamDefinition;
 import org.apache.camel.model.rest.RestParamType;
-import org.apache.http.conn.HttpHostConnectException;
-import org.springframework.http.HttpStatus;
 
-import java.net.UnknownHostException;
 import java.util.List;
 
 public class PathRouteRepublisher extends RouteBuilder {
@@ -57,8 +54,7 @@ public class PathRouteRepublisher extends RouteBuilder {
             default:
                 throw new Exception("No verb available");
         }
-        camelUtils.buildOnExceptionDefinition(routeDefinition, HttpHostConnectException.class, true, HttpStatus.SERVICE_UNAVAILABLE, "API NOT AVAILABLE", runningApi.getRouteId());
-        camelUtils.buildOnExceptionDefinition(routeDefinition, UnknownHostException.class, true, HttpStatus.SERVICE_UNAVAILABLE, "API ENDPOINT WITH WRONG HOST", runningApi.getRouteId());
+        camelUtils.buildOnExceptionDefinition(routeDefinition, runningApi.isZipkinTraceIdVisible(), runningApi.isInternalExceptionMessageVisible(), runningApi.isInternalExceptionVisible(), runningApi.getRouteId());
         if(paramList.isEmpty()) {
             camelUtils.buildRoute(routeDefinition, runningApi.getRouteId(), runningApi, false);
         } else {

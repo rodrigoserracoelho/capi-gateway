@@ -19,22 +19,22 @@ public class ErrorController {
     @Autowired
     private RunningApiManager runningApiManager;
 
-    @GetMapping(path="/error")
+    @GetMapping(path="/capi-error")
     public ResponseEntity<CapiRestException> get(HttpServletRequest request) {
         return buildResponse(request);
     }
 
-    @PostMapping(path="/error")
+    @PostMapping(path="/capi-error")
     public ResponseEntity<CapiRestException> post(HttpServletRequest request) {
         return buildResponse(request);
     }
 
-    @PutMapping(path="/error")
+    @PutMapping(path="/capi-error")
     public ResponseEntity<CapiRestException> put(HttpServletRequest request) {
         return buildResponse(request);
     }
 
-    @DeleteMapping(path="/error")
+    @DeleteMapping(path="/capi-error")
     public ResponseEntity<CapiRestException> delete(HttpServletRequest request) {
         return buildResponse(request);
     }

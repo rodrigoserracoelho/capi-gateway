@@ -14,11 +14,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
 
-@Controller
-@Slf4j
-public class SpringErrorController extends AbstractErrorController {
+//@Controller
+//@Slf4j
+public class SpringErrorController { //extends AbstractErrorController {
 
-    public SpringErrorController(ErrorAttributes errorAttributes) {
+    /*public SpringErrorController(ErrorAttributes errorAttributes) {
         super(errorAttributes);
     }
 
@@ -36,6 +36,6 @@ public class SpringErrorController extends AbstractErrorController {
     @Override
     public String getErrorPath() {
         return PATH;
-    }
+    }*/
 
 }

@@ -15,5 +15,6 @@ public class RouteErrorProcessor implements Processor {
         Exception cause = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Exception.class);
         exchange.getIn().setHeader(Constants.CAPI_INTERNAL_ERROR, cause.getMessage());
         exchange.getIn().setHeader(Constants.CAPI_INTERNAL_ERROR_CLASS_NAME, cause.getClass().getName());
+        exchange.getIn().setHeader(Exchange.HTTP_PATH, "");
     }
 }

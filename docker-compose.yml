@@ -13,7 +13,7 @@ services:
       - api.gateway.prometheus.endpoint=http://prometheus:9090
       - api.gateway.zipkin.endpoint=http://zipkin:9411/api/v2/spans
       - api.gateway.grafana.endpoint=http://localhost:8080/grafana
-      - api.gateway.error.endpoint=localhost:8380/error
+      - api.gateway.error.endpoint=localhost:8380/capi-error
       - api.gateway.traffic.inspector.enabled=true
       - api.gateway.traffic.inspector.kafka.topic=capi-traffic-inspector
       - api.gateway.traffic.inspector.kafka.groupId=capiGroup
