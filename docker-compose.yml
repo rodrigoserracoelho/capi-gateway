@@ -2,18 +2,22 @@ version: "2"
 services:
   capi:
     container_name: capi
-    image: surisoft/capi-gateway:1.1.4
+    image: surisoft/capi-gateway:1.2.1
     ports:
       - "8380:8380"
     environment:
+      - spring.profiles.active=tst
       - api.gateway.api.running.inspector.period=60000
       - api.gateway.api.throttling.inspector.period=5000
       - api.gateway.grafana.create.panels=false
       - api.gateway.prometheus.endpoint=http://prometheus:9090
       - api.gateway.zipkin.endpoint=http://zipkin:9411/api/v2/spans
       - api.gateway.grafana.endpoint=http://localhost:8080/grafana
-      - api.gateway.error.endpoint=localhost:8380/error
-      # Optional, uncomment if you want to enable HTTPS on your CAPI Server, if so, please read also the volumes section of this service.
+      - api.gateway.error.endpoint=localhost:8380/capi-error
+      - api.gateway.traffic.inspector.enabled=true
+      - api.gateway.traffic.inspector.kafka.topic=capi-traffic-inspector
+      - api.gateway.traffic.inspector.kafka.groupId=capiGroup
+      - api.gateway.traffic.inspector.kafka.broker=kafka:9092
       - server.ssl.enabled=true
       - server.ssl.key-store-type=PKCS12
       - server.ssl.key-store=/keys/capi.p12
@@ -29,6 +33,7 @@ services:
     links:
       - mongo
       - zipkin
+      - kafka
     volumes:
       # If you want to enable HTTPS, please map your local directory where you have the certificate for the CAPI spring boot application to be able to load it.
       # Also make sure that the server,ssl.key environment variables are not commented.
@@ -93,3 +98,23 @@ services:
       # If you want to enable HTTPS, please map your local directory where you have the certificate for the CAPI spring boot application to be able to load it.
       # Also make sure that the server,ssl.key environment variables are not commented.
       - ./keys:/keys
+  zookeeper:
+    container_name: capi-zookeeper
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+  kafka:
+    container_name: capi-kafka
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper
+    ports:
+      - 9092:9092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
