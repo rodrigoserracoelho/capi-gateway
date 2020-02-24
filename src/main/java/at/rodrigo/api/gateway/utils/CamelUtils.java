@@ -8,30 +8,37 @@ import at.rodrigo.api.gateway.entity.RunningApi;
 import at.rodrigo.api.gateway.processor.AuthProcessor;
 import at.rodrigo.api.gateway.processor.MetricsProcessor;
 import at.rodrigo.api.gateway.processor.PathVariableProcessor;
-import at.rodrigo.api.gateway.routes.DynamicPathRouteBuilder;
+import at.rodrigo.api.gateway.processor.RouteErrorProcessor;
+import at.rodrigo.api.gateway.routes.PathRouteRepublisher;
 import at.rodrigo.api.gateway.routes.SuspendedRouteBuilder;
 import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Route;
-import org.apache.camel.builder.DeadLetterChannelBuilder;
 import org.apache.camel.model.RouteDefinition;
 import org.apache.camel.zipkin.ZipkinTracer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.apache.camel.builder.Builder.header;
 import static org.apache.camel.language.constant.ConstantLanguage.constant;
 
 
 @Component
 @Slf4j
 public class CamelUtils {
+
+    @Value("${api.gateway.traffic.inspector.enabled}")
+    private boolean trafficInspectorEnabled;
+
+    @Value("${api.gateway.traffic.inspector.kafka.topic}")
+    private String trafficInspectorKafkaTopic;
+
+    @Value("${api.gateway.traffic.inspector.kafka.broker}")
+    private String trafficInspectorKafkaBroker;
 
     @Value("${api.gateway.error.endpoint}")
     private String apiGatewayErrorEndpoint;
@@ -57,10 +64,14 @@ public class CamelUtils {
     @Autowired
     private CamelContext camelContext;
 
+    @Autowired
+    private HttpUtils httpUtils;
+
+    @Autowired
+    private RouteErrorProcessor routeErrorProcessor;
+
     private void registerMetric(String routeID) {
-
         meterRegistry.counter(routeID);
-
     }
 
     public List<String> evaluatePath(String fullPath) {
@@ -77,53 +88,57 @@ public class CamelUtils {
         return paramList;
     }
 
-    public void buildOnExceptionDefinition(RouteDefinition routeDefinition, Class exceptionClass, boolean continued, HttpStatus httpStatus, String message, String routeID) {
+    public void buildOnExceptionDefinition(RouteDefinition routeDefinition, boolean isZipkinTraceIdVisible, boolean isInternalExceptionMessageVisible, boolean isInternalExceptionVisible, String routeID) {
         routeDefinition
-                .onException(exceptionClass)
-                .continued(continued)
-                .setHeader(Constants.REASON_CODE_HEADER, constant(httpStatus.value()))
-                .setHeader(Constants.REASON_MESSAGE_HEADER, constant(message))
+                .onException(Exception.class)
+                .handled(true)
+                .setHeader(Constants.ERROR_API_SHOW_TRACE_ID, constant(isZipkinTraceIdVisible))
+                .setHeader(Constants.ERROR_API_SHOW_INTERNAL_ERROR_MESSAGE, constant(isInternalExceptionMessageVisible))
+                .setHeader(Constants.ERROR_API_SHOW_INTERNAL_ERROR_CLASS, constant(isInternalExceptionVisible))
+                .process(routeErrorProcessor)
                 .setHeader(Constants.ROUTE_ID_HEADER, constant(routeID))
                 .toF(Constants.FAIL_REST_ENDPOINT_OBJECT, apiGatewayErrorEndpoint)
-                .removeHeader(Constants.REASON_CODE_HEADER)
-                .removeHeader(Constants.REASON_MESSAGE_HEADER)
+                .removeHeader(Constants.ERROR_API_SHOW_TRACE_ID)
+                .removeHeader(Constants.ERROR_API_SHOW_INTERNAL_ERROR_MESSAGE)
+                .removeHeader(Constants.ERROR_API_SHOW_INTERNAL_ERROR_CLASS)
                 .removeHeader(Constants.ROUTE_ID_HEADER)
                 .end();
     }
 
     public void buildRoute(RouteDefinition routeDefinition, String routeID, Api api, Path path, boolean pathHasParams) {
+
         String protocol = api.getEndpointType().equals(EndpointType.HTTP) ? Constants.HTTP4_PREFIX : Constants.HTTPS4_PREFIX;
-        String toEndpoint = pathHasParams ? protocol + api.getEndpoint() + Constants.HTTP4_CALL_PARAMS : protocol + api.getEndpoint() + "/" + path.getPath() + Constants.HTTP4_CALL_PARAMS;
+        String[] endpointArray = buildEndpoints(pathHasParams, protocol, path.getPath(), api.getEndpoints(), api.getConnectTimeout(), api.getSocketTimeout());
+
         if(pathHasParams) {
             routeDefinition.setHeader(Constants.CAPI_CONTEXT_HEADER, constant(api.getContext()));
         }
+
+        if(trafficInspectorEnabled) {
+            routeDefinition
+                    .setBody(constant(routeID))
+                    .to("kafka:" + trafficInspectorKafkaTopic + "?brokers=" + trafficInspectorKafkaBroker);
+        }
+
         if(api.isSecured()) {
             routeDefinition
-                    .streamCaching()
                     .setHeader(Constants.BLOCK_IF_IN_ERROR_HEADER, constant(api.isBlockIfInError()))
                     .setHeader(Constants.API_ID_HEADER, constant(api.getId()))
-                    .process(authProcessor)
-                    .choice()
-                    .when(header(Constants.VALID_HEADER).isEqualTo(true))
                     .process(pathProcessor)
-                    .toF(toEndpoint)
-                    .removeHeader(Constants.VALID_HEADER)
+                    .process(authProcessor)
                     .process(metricsProcessor)
-                    .otherwise()
-                    .setHeader(Constants.ROUTE_ID_HEADER, constant(routeID))
-                    .toF(Constants.FAIL_REST_ENDPOINT_OBJECT, apiGatewayErrorEndpoint)
-                    .removeHeader(Constants.REASON_CODE_HEADER)
-                    .removeHeader(Constants.REASON_MESSAGE_HEADER)
-                    .removeHeader(Constants.ROUTE_ID_HEADER)
-                    .process(metricsProcessor)
+                    .loadBalance()
+                    .roundRobin()
+                    .to(endpointArray)
                     .end()
                     .setId(routeID);
         } else {
             routeDefinition
-                    .streamCaching()
                     .process(pathProcessor)
-                    .toF(toEndpoint)
                     .process(metricsProcessor)
+                    .loadBalance()
+                    .roundRobin()
+                    .to(endpointArray)
                     .end()
                     .setId(routeID);
         }
@@ -135,38 +150,40 @@ public class CamelUtils {
     }
 
     public void buildRoute(RouteDefinition routeDefinition, String routeID, RunningApi runningApi, boolean pathHasParams) {
+
         String protocol = runningApi.getEndpointType().equals(EndpointType.HTTP) ? Constants.HTTP4_PREFIX : Constants.HTTPS4_PREFIX;
-        String toEndpoint = pathHasParams ? protocol + runningApi.getEndpoint() + Constants.HTTP4_CALL_PARAMS : protocol + runningApi.getEndpoint() + "/" + runningApi.getPath() + Constants.HTTP4_CALL_PARAMS;
+        String[] endpointArray = buildEndpoints(pathHasParams, protocol, runningApi.getPath(), runningApi.getEndpoints(), runningApi.getConnectTimeout(), runningApi.getSocketTimeout());
+
         if(pathHasParams) {
             routeDefinition.setHeader(Constants.CAPI_CONTEXT_HEADER, constant(runningApi.getContext()));
         }
+
+        if(trafficInspectorEnabled) {
+            routeDefinition
+                    .setBody(constant(routeID))
+                    .to("kafka:" + trafficInspectorKafkaTopic + "?brokers=" + trafficInspectorKafkaBroker);
+        }
+
         if(runningApi.isSecured()) {
             routeDefinition
-                    .streamCaching()
                     .setHeader(Constants.BLOCK_IF_IN_ERROR_HEADER, constant(runningApi.isBlockIfInError()))
                     .setHeader(Constants.API_ID_HEADER, constant(runningApi.getId()))
                     .process(authProcessor)
-                    .choice()
-                    .when(header(Constants.VALID_HEADER).isEqualTo(true))
                     .process(pathProcessor)
-                    .toF(toEndpoint)
-                    .removeHeader(Constants.VALID_HEADER)
                     .process(metricsProcessor)
-                    .otherwise()
-                    .setHeader(Constants.ROUTE_ID_HEADER, constant(routeID))
-                    .toF(Constants.FAIL_REST_ENDPOINT_OBJECT, apiGatewayErrorEndpoint)
-                    .removeHeader(Constants.REASON_CODE_HEADER)
-                    .removeHeader(Constants.REASON_MESSAGE_HEADER)
-                    .removeHeader(Constants.ROUTE_ID_HEADER)
-                    .process(metricsProcessor)
+                    .loadBalance()
+                    .roundRobin()
+                    .to(endpointArray)
                     .end()
                     .setId(routeID);
         } else {
             routeDefinition
                     .streamCaching()
                     .process(pathProcessor)
-                    .toF(toEndpoint)
                     .process(metricsProcessor)
+                    .loadBalance()
+                    .roundRobin()
+                    .to(endpointArray)
                     .end()
                     .setId(routeID);
         }
@@ -217,9 +234,24 @@ public class CamelUtils {
     public void addActiveRoute(RunningApi runningApi) {
         try {
             log.info("Add route: {}", runningApi.getRouteId());
-            camelContext.addRoutes(new DynamicPathRouteBuilder(camelContext, this, runningApi));
+            camelContext.addRoutes(new PathRouteRepublisher(camelContext, this, runningApi));
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
+    }
+
+    private String[] buildEndpoints(boolean pathHasParams, String protocol, String path, List<String> endpointList, int connectTimeout, int socketTimeout) {
+        List<String> transformedEndpointList = new ArrayList<>();
+        for(String endpoint : endpointList) {
+            endpoint = pathHasParams ? protocol + endpoint + Constants.HTTP4_CALL_PARAMS : protocol + endpoint + httpUtils.setPath(path) + Constants.HTTP4_CALL_PARAMS;
+            if(connectTimeout > -1) {
+                endpoint = httpUtils.setHttpConnectTimeout(endpoint, connectTimeout);
+            }
+            if(socketTimeout > -1) {
+                endpoint = httpUtils.setHttpSocketTimeout(endpoint, socketTimeout);
+            }
+            transformedEndpointList.add(endpoint);
+        }
+        return transformedEndpointList.stream().toArray(n -> new String[n]);
     }
 }

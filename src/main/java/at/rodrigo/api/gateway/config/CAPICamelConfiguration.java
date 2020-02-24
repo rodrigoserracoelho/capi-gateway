@@ -19,6 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.Environment;
 import org.springframework.web.client.RestTemplate;
 import zipkin2.reporter.AsyncReporter;
 import zipkin2.reporter.okhttp3.OkHttpSender;
@@ -63,6 +65,9 @@ public class CAPICamelConfiguration {
     @Autowired
     private CamelContext camelContext;
 
+    @Autowired
+    private Environment environment;
+
     @Bean
     RestTemplate restTemplate() {
         return new RestTemplate();
@@ -71,7 +76,7 @@ public class CAPICamelConfiguration {
 
     @Bean
     public Config hazelCastConfig() {
-        return new CAPICacheConfig();
+        return new CAPICacheConfig("dev");
     }
 
     @Bean

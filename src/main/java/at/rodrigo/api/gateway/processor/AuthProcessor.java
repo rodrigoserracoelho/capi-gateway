@@ -1,5 +1,7 @@
 package at.rodrigo.api.gateway.processor;
 
+import at.rodrigo.api.gateway.exception.InvalidTokenException;
+import at.rodrigo.api.gateway.exception.NoSubscriptionException;
 import at.rodrigo.api.gateway.security.JWSChecker;
 import at.rodrigo.api.gateway.utils.Constants;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -56,23 +58,21 @@ public class AuthProcessor implements Processor {
                 if(!validCall) {
                     exchange.getIn().setHeader(Constants.REASON_CODE_HEADER, HttpStatus.FORBIDDEN.value());
                     exchange.getIn().setHeader(Constants.REASON_MESSAGE_HEADER, "You are not subscribed to this API");
-                    exchange.setException(null);
+                    exchange.setException(new NoSubscriptionException());
                 }
             } else {
                 exchange.getIn().setHeader(Constants.REASON_CODE_HEADER, HttpStatus.BAD_REQUEST.value());
                 exchange.getIn().setHeader(Constants.REASON_MESSAGE_HEADER, "Invalid token was provided");
-                exchange.setException(null);
+                exchange.setException(new InvalidTokenException());
             }
-        } catch(ParseException pex) {
+        } catch(ParseException exception) {
             exchange.getIn().setHeader(Constants.REASON_CODE_HEADER, HttpStatus.BAD_REQUEST.value());
             exchange.getIn().setHeader(Constants.REASON_MESSAGE_HEADER, "Invalid token was provided");
-            exchange.setException(null);
-        } catch(Exception e) {
+            exchange.setException(exception);
+        } catch(Exception exception) {
             exchange.getIn().setHeader(Constants.REASON_CODE_HEADER, HttpStatus.FORBIDDEN.value());
             exchange.getIn().setHeader(Constants.REASON_MESSAGE_HEADER, "Invalid Keys");
-            exchange.setException(null);
-        } finally {
-            exchange.getIn().setHeader(Constants.VALID_HEADER, validCall);
+            exchange.setException(exception);
         }
     }
 }

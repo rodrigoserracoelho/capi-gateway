@@ -1,10 +1,8 @@
 package at.rodrigo.api.gateway.routes;
 
-
 import at.rodrigo.api.gateway.cache.ThrottlingManager;
 import at.rodrigo.api.gateway.entity.Api;
 import at.rodrigo.api.gateway.entity.Path;
-import at.rodrigo.api.gateway.parser.SwaggerParser;
 import at.rodrigo.api.gateway.repository.ApiRepository;
 import at.rodrigo.api.gateway.utils.CamelUtils;
 import at.rodrigo.api.gateway.utils.GrafanaUtils;
@@ -13,23 +11,17 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.RouteDefinition;
 import org.apache.camel.model.rest.RestOperationParamDefinition;
 import org.apache.camel.model.rest.RestParamType;
-import org.apache.http.conn.HttpHostConnectException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
-import java.net.UnknownHostException;
 import java.util.List;
 
 @Component
 @Slf4j
-public class SwaggerRestRouter extends RouteBuilder {
+public class SimpleRestRoutePublisher extends RouteBuilder {
 
     @Autowired
     private ApiRepository apiRepository;
-
-    @Autowired
-    private SwaggerParser swaggerParser;
 
     @Autowired
     private CamelUtils camelUtils;
@@ -43,9 +35,9 @@ public class SwaggerRestRouter extends RouteBuilder {
     @Override
     public void configure() {
 
-        log.info("Starting configuration of Swagger Routes");
+        log.info("Starting configuration of Simple Routes");
 
-        List<Api> apiList = apiRepository.findAllBySwagger(true);
+        List<Api> apiList = apiRepository.findAllBySwagger(false);
         for(Api api : apiList) {
             try {
                 addRoutes(api);
@@ -53,15 +45,13 @@ public class SwaggerRestRouter extends RouteBuilder {
                 log.error(e.getMessage(), e);
             }
         }
+
+
     }
 
-    void addRoutes(Api api) throws Exception {
-
-        List<Path> pathList = swaggerParser.parse(api.getSwaggerEndpoint());
-        api.setPaths(pathList);
-
-        for(Path path : pathList) {
-            //if(!path.getPath().equals("/error")) {
+    void addRoutes(Api api) throws  Exception {
+        for(Path path : api.getPaths()) {
+            if(!path.getPath().equals("/error")) {
                 RestOperationParamDefinition restParamDefinition = new RestOperationParamDefinition();
                 List<String> paramList = camelUtils.evaluatePath(path.getPath());
 
@@ -85,9 +75,7 @@ public class SwaggerRestRouter extends RouteBuilder {
                     default:
                         throw new Exception("No verb available");
                 }
-
-                camelUtils.buildOnExceptionDefinition(routeDefinition, HttpHostConnectException.class, true, HttpStatus.SERVICE_UNAVAILABLE, "API NOT AVAILABLE", routeID);
-                camelUtils.buildOnExceptionDefinition(routeDefinition, UnknownHostException.class, true, HttpStatus.SERVICE_UNAVAILABLE, "API ENDPOINT WITH WRONG HOST", routeID);
+                camelUtils.buildOnExceptionDefinition(routeDefinition, api.isZipkinTraceIdVisible(), api.isInternalExceptionMessageVisible(), api.isInternalExceptionVisible(), routeID);
                 if(paramList.isEmpty()) {
                     camelUtils.buildRoute(routeDefinition, routeID, api, path, false);
                 } else {
@@ -98,7 +86,7 @@ public class SwaggerRestRouter extends RouteBuilder {
                     }
                     camelUtils.buildRoute(routeDefinition, routeID, api, path, true);
                 }
-            //}
+            }
         }
         throttlingManager.applyThrottling(api);
         grafanaUtils.addToGrafana(api);

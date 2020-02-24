@@ -23,7 +23,6 @@ public class RunningApiInspector {
 
     @Scheduled(fixedRateString = "${api.gateway.api.running.inspector.period}")
     public void checkDisabledRunningApis() {
-        log.info("CHECKING FOR APIS TO BLOCK");
         List<RunningApi> disabledRunningApis = runningApiManager.getDisabledRunningApis();
         for(RunningApi runningApi : disabledRunningApis) {
             camelUtils.suspendRoute(runningApi);
@@ -37,7 +36,6 @@ public class RunningApiInspector {
 
     @Scheduled(fixedRateString = "${api.gateway.api.running.inspector.period}")
     public void checkRunningApisToUnblock() {
-        log.info("CHECKING FOR APIS TO UNBLOCK");
         List<RunningApi> removeddRunningApis = runningApiManager.getRemovedRunningApis();
         for(RunningApi runningApi : removeddRunningApis) {
             if(runningApi.getCountBlockChecks() == runningApi.getUnblockAfterMinutes()) {

@@ -16,7 +16,7 @@ import org.springframework.http.HttpStatus;
 import java.net.UnknownHostException;
 import java.util.List;
 
-public class DynamicRestRouteBuilder extends RouteBuilder {
+public class SwaggerRouteRepublisher extends RouteBuilder {
 
     private Api api;
 
@@ -26,7 +26,7 @@ public class DynamicRestRouteBuilder extends RouteBuilder {
 
     private ThrottlingManager throttlingManager;
 
-    public DynamicRestRouteBuilder(CamelContext context, CamelUtils camelUtils, GrafanaUtils grafanaUtils, ThrottlingManager throttlingManager, Api api) {
+    public SwaggerRouteRepublisher(CamelContext context, CamelUtils camelUtils, GrafanaUtils grafanaUtils, ThrottlingManager throttlingManager, Api api) {
         super(context);
         this.api = api;
         this.camelUtils = camelUtils;
@@ -36,17 +36,14 @@ public class DynamicRestRouteBuilder extends RouteBuilder {
 
     @Override
     public void configure() {
-        log.info("Starting configuration of a Simple Route");
-
         try {
             addRoutes(api);
         } catch(Exception e) {
             log.error(e.getMessage(), e);
         }
-
     }
 
-    void addRoutes(Api api) throws  Exception {
+    void addRoutes(Api api) throws Exception {
         for(Path path : api.getPaths()) {
             if(!path.getPath().equals("/error")) {
                 RestOperationParamDefinition restParamDefinition = new RestOperationParamDefinition();
@@ -72,8 +69,8 @@ public class DynamicRestRouteBuilder extends RouteBuilder {
                     default:
                         throw new Exception("No verb available");
                 }
-                camelUtils.buildOnExceptionDefinition(routeDefinition, HttpHostConnectException.class, true, HttpStatus.SERVICE_UNAVAILABLE, "API NOT AVAILABLE", routeID);
-                camelUtils.buildOnExceptionDefinition(routeDefinition, UnknownHostException.class, true, HttpStatus.SERVICE_UNAVAILABLE, "API ENDPOINT WITH WRONG HOST", routeID);
+
+                camelUtils.buildOnExceptionDefinition(routeDefinition, api.isZipkinTraceIdVisible(), api.isInternalExceptionMessageVisible(), api.isInternalExceptionVisible(), routeID);
                 if(paramList.isEmpty()) {
                     camelUtils.buildRoute(routeDefinition, routeID, api, path, false);
                 } else {
