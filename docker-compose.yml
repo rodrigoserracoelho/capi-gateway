@@ -96,7 +96,6 @@ services:
       - mongo
     volumes:
       # If you want to enable HTTPS, please map your local directory where you have the certificate for the CAPI spring boot application to be able to load it.
-      # Also make sure that the server,ssl.key environment variables are not commented.
       - ./keys:/keys
   zookeeper:
     container_name: capi-zookeeper
