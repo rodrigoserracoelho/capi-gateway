@@ -3,7 +3,6 @@ package at.rodrigo.api.gateway.cache;
 import at.rodrigo.api.gateway.entity.Api;
 import at.rodrigo.api.gateway.entity.RunningApi;
 import at.rodrigo.api.gateway.entity.Verb;
-import at.rodrigo.api.gateway.utils.Constants;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -37,13 +35,18 @@ public class RunningApiManager {
 
         runningApi.setContext(api.getContext());
         runningApi.setAudience(api.getAudience());
-        runningApi.setEndpoint(api.getEndpoint());
+        runningApi.setEndpoints(api.getEndpoints());
         runningApi.setJwsEndpoint(api.getJwsEndpoint());
         runningApi.setEndpointType(api.getEndpointType());
         runningApi.setSecured(api.isSecured());
         runningApi.setPath(path);
         runningApi.setVerb(verb);
         runningApi.setBlockIfInError(api.isBlockIfInError());
+        runningApi.setZipkinTraceIdVisible(api.isZipkinTraceIdVisible());
+        runningApi.setInternalExceptionMessageVisible(api.isInternalExceptionMessageVisible());
+        runningApi.setInternalExceptionVisible(api.isInternalExceptionVisible());
+        runningApi.setConnectTimeout(api.getConnectTimeout());
+        runningApi.setSocketTimeout(api.getSocketTimeout());
 
         if(api.isBlockIfInError()) {
             if(api.isUnblockAfter()) {

@@ -110,6 +110,12 @@
       <version>${org.apache.camel.springboot-version}</version>
     </dependency>
 
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-resilience4j</artifactId>
+      <version>${org.apache.camel.springboot-version}</version>
+    </dependency>
+
     <!-- Instrumentation -->
     <dependency>
       <groupId>io.zipkin.reporter2</groupId>

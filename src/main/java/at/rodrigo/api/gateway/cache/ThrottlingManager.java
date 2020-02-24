@@ -9,9 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Component
 @Slf4j
@@ -48,6 +46,19 @@ public class ThrottlingManager {
 
     public void saveThrottlingPolicy(String id, ThrottlingPolicy throttlingPolicy) {
         this.getThrottlingPolicies().put(id, throttlingPolicy);
+    }
+
+    public void incrementThrottlingByRouteID(String routeID, int incrementBy) {
+        IMap<String, ThrottlingPolicy> entries = getThrottlingPolicies();
+        Iterator<String> iterator = entries.keySet().iterator();
+        while(iterator.hasNext()) {
+            String id = iterator.next();
+            ThrottlingPolicy throttlingPolicy = entries.get(id);
+            if(throttlingPolicy.getRouteID().contains(routeID)) {
+                throttlingPolicy.setTotalCalls(throttlingPolicy.getTotalCalls() + incrementBy);
+                getThrottlingPolicies().put(id, throttlingPolicy);
+            }
+        }
     }
 
     ThrottlingPolicy cloneThrottling(ThrottlingPolicy throttlingPolicy) {
