@@ -4,16 +4,15 @@ import at.rodrigo.api.gateway.cache.ThrottlingManager;
 import at.rodrigo.api.gateway.entity.Api;
 import at.rodrigo.api.gateway.entity.Path;
 import at.rodrigo.api.gateway.utils.CamelUtils;
+import at.rodrigo.api.gateway.utils.Constants;
 import at.rodrigo.api.gateway.utils.GrafanaUtils;
 import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.RouteDefinition;
 import org.apache.camel.model.rest.RestOperationParamDefinition;
 import org.apache.camel.model.rest.RestParamType;
-import org.apache.http.conn.HttpHostConnectException;
-import org.springframework.http.HttpStatus;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.net.UnknownHostException;
 import java.util.List;
 
 public class SwaggerRouteRepublisher extends RouteBuilder {
@@ -58,13 +57,17 @@ public class SwaggerRouteRepublisher extends RouteBuilder {
                         routeDefinition = rest().get("/" + api.getContext() + path.getPath()).route();
                         break;
                     case POST:
-                        routeDefinition = rest().post("/" + api.getContext() + path.getPath()).route();
+                        //routeDefinition = rest().post("/" + api.getContext() + path.getPath()).route().convertBodyTo(MultipartFile.class).setProperty(Constants.REST_CALL_BODY, body());
+                        routeDefinition = rest().post("/" + api.getContext() + path.getPath()).route().setProperty(Constants.REST_CALL_BODY, body());
                         break;
                     case PUT:
-                        routeDefinition = rest().put("/" + api.getContext() + path.getPath()).route();
+                        routeDefinition = rest().put("/" + api.getContext() + path.getPath()).route().setProperty(Constants.REST_CALL_BODY, body());
                         break;
                     case DELETE:
                         routeDefinition = rest().delete("/" + api.getContext() + path.getPath()).route();
+                        break;
+                    case HEAD:
+                        routeDefinition = rest().head("/" + api.getContext() + path.getPath()).route();
                         break;
                     default:
                         throw new Exception("No verb available");

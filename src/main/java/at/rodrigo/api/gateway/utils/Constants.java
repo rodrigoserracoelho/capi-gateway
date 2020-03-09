@@ -26,4 +26,5 @@ public class Constants {
     public static final String ERROR_API_SHOW_INTERNAL_ERROR_MESSAGE = "show-internal-error-message";
     public static final String ERROR_API_SHOW_INTERNAL_ERROR_CLASS = "show-internal-error-class";
     public static final String TRACE_ID_HEADER = "X-B3-TraceId";
+    public static final String REST_CALL_BODY = "rest-call-body";
 }

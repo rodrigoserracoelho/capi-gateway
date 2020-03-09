@@ -19,8 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.Environment;
 import org.springframework.web.client.RestTemplate;
 import zipkin2.reporter.AsyncReporter;
 import zipkin2.reporter.okhttp3.OkHttpSender;
@@ -65,9 +63,20 @@ public class CAPICamelConfiguration {
     @Autowired
     private CamelContext camelContext;
 
-    @Autowired
-    private Environment environment;
+    @Value("${gateway.environment}")
+    private String gatewayEnvironment;
 
+    @Value("${gateway.cache.zookeeper.discovery}")
+    private boolean zookeeperDiscovery;
+
+    @Value("${gateway.cache.zookeeper.host}")
+    private String zookeeperHost;
+
+    @Value("${gateway.cache.zookeeper.path}")
+    private String zookeeperPath;
+
+    @Value("${gateway.cache.zookeeper.group.key}")
+    private String zookeeperGroupKey;
     @Bean
     RestTemplate restTemplate() {
         return new RestTemplate();
@@ -76,7 +85,7 @@ public class CAPICamelConfiguration {
 
     @Bean
     public Config hazelCastConfig() {
-        return new CAPICacheConfig("dev");
+        return new CAPICacheConfig(gatewayEnvironment, zookeeperDiscovery, zookeeperHost, zookeeperPath, zookeeperGroupKey);
     }
 
     @Bean

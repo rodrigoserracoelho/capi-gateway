@@ -12,6 +12,9 @@ public class PathVariableProcessor implements Processor {
 
     @Override
     public void process(Exchange exchange) {
+
+        processEndpointCallBody(exchange);
+
         String capiContext = getCapiContext(exchange);
         if(capiContext != null) {
             String httpPath = exchange.getIn().getHeader(Exchange.HTTP_PATH).toString();
@@ -28,5 +31,9 @@ public class PathVariableProcessor implements Processor {
             return capiContext;
         }
         return null;
+    }
+
+    private void processEndpointCallBody(Exchange exchange) {
+        exchange.getIn().setBody(exchange.getProperty(Constants.REST_CALL_BODY));
     }
 }

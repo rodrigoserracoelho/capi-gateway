@@ -2,7 +2,7 @@ version: "2"
 services:
   capi:
     container_name: capi
-    image: surisoft/capi-gateway:1.2.2
+    image: surisoft/capi-gateway:1.2.3-SNAPSHOT
     ports:
       - "8380:8380"
     environment:
@@ -30,6 +30,11 @@ services:
       - spring.data.mongodb.username=capi
       - spring.data.mongodb.password=capi
       - spring.data.mongodb.database=capi
+      - gateway.environment=dev
+      - gateway.cache.zookeeper.discovery=true
+      - gateway.cache.zookeeper.host=zookeeper:2181
+      - gateway.cache.zookeeper.path=/discovery/hazelcast
+      - gateway.cache.zookeeper.group.key=capi
     links:
       - mongo
       - zipkin
@@ -75,7 +80,7 @@ services:
       - ./grafana-datasource.yml:/etc/grafana/provisioning/datasources/datasources.yml
   capi-rest:
     container_name: capi-rest
-    image: surisoft/capi-gateway-rest:1.2.2
+    image: surisoft/capi-gateway-rest:1.2.3-SNAPSHOT
     ports:
       - "8080:8080"
     environment:
@@ -92,14 +97,22 @@ services:
       - server.ssl.key-alias=capigateway
       - server.ssl.trust-store=/keys/truststore.jks
       - server.ssl.trust-store-password=capigateway
+      - gateway.environment=dev
+      - gateway.cache.zookeeper.discovery=true
+      - gateway.cache.zookeeper.host=zookeeper:2181
+      - gateway.cache.zookeeper.path=/discovery/hazelcast
+      - gateway.cache.zookeeper.group.key=capi
     links:
       - mongo
+      - zookeeper
     volumes:
       # If you want to enable HTTPS, please map your local directory where you have the certificate for the CAPI spring boot application to be able to load it.
       - ./keys:/keys
   zookeeper:
     container_name: capi-zookeeper
     image: confluentinc/cp-zookeeper:latest
+    ports:
+      - 2181:2181
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000

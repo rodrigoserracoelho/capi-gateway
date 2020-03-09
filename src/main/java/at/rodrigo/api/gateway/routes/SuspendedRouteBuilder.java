@@ -5,6 +5,10 @@ import at.rodrigo.api.gateway.utils.CamelUtils;
 import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.RouteDefinition;
+import org.apache.camel.model.rest.RestOperationParamDefinition;
+import org.apache.camel.model.rest.RestParamType;
+
+import java.util.List;
 
 public class SuspendedRouteBuilder extends RouteBuilder {
 
@@ -31,6 +35,7 @@ public class SuspendedRouteBuilder extends RouteBuilder {
     }
 
     private void addRoute(RunningApi runningApi) throws  Exception {
+        RestOperationParamDefinition restParamDefinition = new RestOperationParamDefinition();
         RouteDefinition routeDefinition;
         switch(runningApi.getVerb()) {
             case GET:
@@ -48,6 +53,15 @@ public class SuspendedRouteBuilder extends RouteBuilder {
             default:
                 throw new Exception("No verb available");
         }
-        camelUtils.buildSuspendedRoute(routeDefinition, runningApi.getRouteId());
+        List<String> paramList = camelUtils.evaluatePath(runningApi.getPath());
+        if(!paramList.isEmpty()) {
+            for(String param : paramList) {
+                restParamDefinition.name(param)
+                        .type(RestParamType.path)
+                        .dataType("String");
+            }
+            camelUtils.buildSuspendedRoute(routeDefinition, runningApi, true);
+        }
+        camelUtils.buildSuspendedRoute(routeDefinition, runningApi, false);
     }
 }

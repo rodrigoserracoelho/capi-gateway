@@ -133,7 +133,7 @@ public class CamelUtils {
                     .end()
                     .setId(routeID);
         } else {
-            routeDefinition
+            routeDefinition.streamCaching()
                     .process(pathProcessor)
                     .process(metricsProcessor)
                     .loadBalance()
@@ -191,12 +191,16 @@ public class CamelUtils {
         zipkinTracer.addServerServiceMapping(runningApi.getContext() + runningApi.getPath(), routeID);
     }
 
-    public void buildSuspendedRoute(RouteDefinition routeDefinition, String routeID) {
+    public void buildSuspendedRoute(RouteDefinition routeDefinition, RunningApi runningApi, boolean hasParams) {
+        if(hasParams) {
+            routeDefinition.setHeader(Constants.CAPI_CONTEXT_HEADER, constant(runningApi.getContext()));
+        }
         routeDefinition
-                .setHeader(Constants.ROUTE_ID_HEADER, constant(routeID))
+                .setHeader(Constants.ROUTE_ID_HEADER, constant(runningApi.getRouteId()))
+                .process(routeErrorProcessor)
                 .toF(Constants.FAIL_REST_ENDPOINT_OBJECT, apiGatewayErrorEndpoint)
                 .end()
-                .setId(routeID);
+                .setId(runningApi.getRouteId());
     }
 
     public String normalizeRouteId(Api api, Path path) {
