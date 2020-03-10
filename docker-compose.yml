@@ -7,7 +7,7 @@ services:
       - "8380:8380"
     environment:
       - spring.profiles.active=tst
-      - api.gateway.api.running.inspector.period=60000
+      - api.gateway.api.running.inspector.period=5000
       - api.gateway.api.throttling.inspector.period=5000
       - api.gateway.grafana.create.panels=false
       - api.gateway.prometheus.endpoint=http://prometheus:9090
@@ -132,4 +132,4 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1l

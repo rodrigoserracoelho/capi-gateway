@@ -2,6 +2,7 @@ package at.rodrigo.api.gateway.cache;
 
 import at.rodrigo.api.gateway.entity.Api;
 import at.rodrigo.api.gateway.entity.RunningApi;
+import at.rodrigo.api.gateway.entity.SuspensionType;
 import at.rodrigo.api.gateway.entity.Verb;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
@@ -111,7 +112,10 @@ public class RunningApiManager {
         Iterator<String> i = runningApis.keySet().iterator();
         while(i.hasNext()) {
             String routeId = i.next();
-            if(runningApis.get(routeId).isDisabled() && runningApis.get(routeId).isRemoved() && runningApis.get(routeId).isUnblockAfter()) {
+            if(runningApis.get(routeId).isDisabled() &&
+                    runningApis.get(routeId).isRemoved() &&
+                    runningApis.get(routeId).isUnblockAfter() &&
+                    runningApis.get(routeId).getSuspensionType().equals(SuspensionType.ERROR)) {
                 removedRunningApis.add(runningApis.get(routeId));
             }
         }

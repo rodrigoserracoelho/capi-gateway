@@ -2,6 +2,7 @@ package at.rodrigo.api.gateway.routes;
 
 import at.rodrigo.api.gateway.entity.RunningApi;
 import at.rodrigo.api.gateway.utils.CamelUtils;
+import at.rodrigo.api.gateway.utils.Constants;
 import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.RouteDefinition;
@@ -43,10 +44,10 @@ public class PathRouteRepublisher extends RouteBuilder {
                 routeDefinition = rest().get("/" + runningApi.getContext() + runningApi.getPath()).route();
                 break;
             case POST:
-                routeDefinition = rest().post("/" + runningApi.getContext() + runningApi.getPath()).route();
+                routeDefinition = rest().post("/" + runningApi.getContext() + runningApi.getPath()).route().setProperty(Constants.REST_CALL_BODY, body());
                 break;
             case PUT:
-                routeDefinition = rest().put("/" + runningApi.getContext() + runningApi.getPath()).route();
+                routeDefinition = rest().put("/" + runningApi.getContext() + runningApi.getPath()).route().setProperty(Constants.REST_CALL_BODY, body());
                 break;
             case DELETE:
                 routeDefinition = rest().delete("/" + runningApi.getContext() + runningApi.getPath()).route();

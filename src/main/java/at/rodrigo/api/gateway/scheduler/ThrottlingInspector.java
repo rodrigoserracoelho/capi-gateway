@@ -7,9 +7,6 @@ import at.rodrigo.api.gateway.entity.SuspensionType;
 import at.rodrigo.api.gateway.entity.ThrottlingPolicy;
 import at.rodrigo.api.gateway.utils.CamelUtils;
 import com.hazelcast.core.IMap;
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.Measurement;
-import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -49,7 +46,6 @@ public class ThrottlingInspector {
                     Calendar throttlingExpirationTime = Calendar.getInstance();
                     throttlingExpirationTime.add(Calendar.MILLISECOND, throttlingPolicy.getPeriodForMaxCalls());
                     throttlingPolicy.setThrottlingExpiration(throttlingExpirationTime.getTime());
-                    log.info(throttlingPolicy.getThrottlingExpiration().toString());
                     throttlingManager.saveThrottlingPolicy(policyID, throttlingPolicy);
                 }
 
@@ -58,20 +54,19 @@ public class ThrottlingInspector {
                     for(String routeID : routes) {
                         RunningApi runningApi = runningApiManager.getRunningApi(routeID);
                         if(!runningApi.isRemoved()) {
-                            if(throttlingPolicy.getTotalCalls() >= throttlingPolicy.getMaxCallsAllowed()) {
+                            if(throttlingPolicy.getTotalCalls() >= throttlingPolicy.getMaxCallsAllowed() && !runningApi.isRemoved()) {
                                 Calendar throttlingExpirationTime = Calendar.getInstance();
                                 throttlingExpirationTime.add(Calendar.MILLISECOND, throttlingPolicy.getPeriodForMaxCalls());
 
                                 throttlingPolicy.setThrottlingExpiration(throttlingExpirationTime.getTime());
                                 throttlingManager.saveThrottlingPolicy(policyID, throttlingPolicy);
-
-                                camelUtils.suspendRoute(runningApi);
                                 runningApi.setRemoved(true);
                                 runningApi.setDisabled(true);
                                 runningApi.setSuspensionType(SuspensionType.THROTTLING);
                                 runningApi.setSuspensionMessage("Your route was suspended because its configured to accept: " + throttlingPolicy.getMaxCallsAllowed() + " calls during a period of " + throttlingPolicy.getPeriodForMaxCalls());
-                                camelUtils.addSuspendedRoute(runningApi);
                                 runningApiManager.saveRunningApi(runningApi);
+                                camelUtils.suspendRoute(runningApi);
+                                camelUtils.addSuspendedRoute(runningApi);
                             } else {
                                 if(throttlingPolicy.getThrottlingExpiration() != null && throttlingPolicy.getThrottlingExpiration().before(executionTime)) {
                                     throttlingPolicy.setTotalCalls(0);
@@ -83,15 +78,15 @@ public class ThrottlingInspector {
                                 }
                             }
                         } else if(throttlingPolicy.getThrottlingExpiration().before(executionTime) && runningApi.getSuspensionType().equals(SuspensionType.THROTTLING)) {
-                            //Remove suspended route
-                            camelUtils.suspendRoute(runningApi);
                             throttlingPolicy.setThrottlingExpiration(null);
                             throttlingPolicy.setTotalCalls(0);
+                            throttlingManager.saveThrottlingPolicy(policyID, throttlingPolicy);
                             runningApi.setDisabled(false);
                             runningApi.setRemoved(false);
-                            camelUtils.addActiveRoute(runningApi);
                             runningApiManager.saveRunningApi(runningApi);
-                            throttlingManager.saveThrottlingPolicy(policyID, throttlingPolicy);
+                            //Remove suspended route
+                            camelUtils.suspendRoute(runningApi);
+                            camelUtils.addActiveRoute(runningApi);
                         }
                     }
 
