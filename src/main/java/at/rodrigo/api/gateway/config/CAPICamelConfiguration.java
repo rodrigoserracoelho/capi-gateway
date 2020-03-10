@@ -45,14 +45,14 @@ public class CAPICamelConfiguration {
     @Value("${api.gateway.zipkin.endpoint}")
     private String zipkinEndpoint;
 
-    @Value("${server.ssl.key-alias}")
-    String serverSslKeyAlias;
+    @Value("${token.provider.key-alias}")
+    String tokenProviderKeyAlias;
 
-    @Value("${server.ssl.key-store-password}")
-    String serverSslKeyPassword;
+    @Value("${token.provider.key-store-password}")
+    String tokenProviderKeyPassword;
 
-    @Value("${server.ssl.key-store}")
-    String serverSslKeyStore;
+    @Value("${token.provider.key-store}")
+    String tokenProviderKeyStore;
 
     @Value("${server.ssl.trust-store}")
     String trustStorePath;
@@ -132,15 +132,15 @@ public class CAPICamelConfiguration {
     public JWKSet jwkSet() {
         try {
             KeyStore keyStore = KeyStore.getInstance("JKS");
-            keyStore.load(new FileInputStream(serverSslKeyStore), serverSslKeyPassword.toCharArray());
-            RSAPrivateCrtKey key = (RSAPrivateCrtKey) keyStore.getKey(serverSslKeyAlias, serverSslKeyPassword.toCharArray());
+            keyStore.load(new FileInputStream(tokenProviderKeyStore), tokenProviderKeyPassword.toCharArray());
+            RSAPrivateCrtKey key = (RSAPrivateCrtKey) keyStore.getKey(tokenProviderKeyAlias, tokenProviderKeyPassword.toCharArray());
             RSAPublicKeySpec spec = new RSAPublicKeySpec(key.getModulus(), key.getPublicExponent());
             PublicKey publicKey = KeyFactory.getInstance("RSA").generatePublic(spec);
             KeyPair keyPair = new KeyPair(publicKey, key);
             RSAKey.Builder builder = new RSAKey.Builder((RSAPublicKey) keyPair.getPublic())
                     .keyUse(KeyUse.SIGNATURE)
                     .algorithm(JWSAlgorithm.RS256)
-                    .keyID(serverSslKeyAlias);
+                    .keyID(tokenProviderKeyAlias);
             return new JWKSet(builder.build());
         } catch(Exception e) {
             log.error(e.getMessage(), e);

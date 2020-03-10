@@ -2,7 +2,7 @@ version: "2"
 services:
   capi:
     container_name: capi
-    image: surisoft/capi-gateway:1.2.3-SNAPSHOT
+    image: surisoft/capi-gateway:1.3.1
     ports:
       - "8380:8380"
     environment:
@@ -25,6 +25,9 @@ services:
       - server.ssl.key-alias=capigateway
       - server.ssl.trust-store=/keys/truststore.jks
       - server.ssl.trust-store-password=capigateway
+      - token.provider.key-alias=capigateway
+      - token.provider.key-store-password=capigateway
+      - token.provider.key-store=/keys/capi.p12
       - spring.data.mongodb.host=mongo
       - spring.data.mongodb.port=27017
       - spring.data.mongodb.username=capi
