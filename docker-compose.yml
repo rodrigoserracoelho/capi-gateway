@@ -83,7 +83,7 @@ services:
       - ./grafana-datasource.yml:/etc/grafana/provisioning/datasources/datasources.yml
   capi-rest:
     container_name: capi-rest
-    image: surisoft/capi-gateway-rest:1.2.3-SNAPSHOT
+    image: surisoft/capi-gateway-rest:1.3.1
     ports:
       - "8080:8080"
     environment:
