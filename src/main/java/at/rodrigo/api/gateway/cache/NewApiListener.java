@@ -2,6 +2,7 @@ package at.rodrigo.api.gateway.cache;
 
 import at.rodrigo.api.gateway.entity.Api;
 import at.rodrigo.api.gateway.entity.Path;
+import at.rodrigo.api.gateway.entity.RunningApi;
 import at.rodrigo.api.gateway.parser.SwaggerParser;
 import at.rodrigo.api.gateway.routes.SimpleRestRouteRepublisher;
 import at.rodrigo.api.gateway.routes.SwaggerRouteRepublisher;
@@ -10,6 +11,7 @@ import at.rodrigo.api.gateway.utils.GrafanaUtils;
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.map.listener.EntryAddedListener;
 import com.hazelcast.map.listener.EntryRemovedListener;
+import com.hazelcast.map.listener.EntryUpdatedListener;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +21,7 @@ import java.util.List;
 
 @Component
 @Slf4j
-public class NewApiListener implements EntryAddedListener<String, Api>, EntryRemovedListener<String, Api> {
+public class NewApiListener implements EntryAddedListener<String, Api>, EntryRemovedListener<String, Api>, EntryUpdatedListener<String, Api> {
 
     @Autowired
     private CamelContext camelContext;
@@ -36,52 +38,53 @@ public class NewApiListener implements EntryAddedListener<String, Api>, EntryRem
     @Autowired
     private ThrottlingManager throttlingManager;
 
+    @Autowired
+    private RunningApiManager runningApiManager;
+
     @Override
     public void entryAdded( EntryEvent<String, Api> event ) {
         log.info("One new API detected, deploying");
+        addRunTimeApi(event.getValue());
+    }
+
+    @Override
+    public void entryRemoved( EntryEvent<String, Api> event ) {
+        log.info("API deleted, undeploying");
+        removeRunTimeApi(event.getOldValue());
+    }
+
+    @Override
+    public void entryUpdated(EntryEvent<String, Api> entryEvent) {
+        log.info("API updated, redeploying");
+        removeRunTimeApi(entryEvent.getOldValue());
+        addRunTimeApi(entryEvent.getValue());
+    }
+
+    private void removeRunTimeApi(Api api) {
         try {
-            Api api = event.getValue();
-            if(api.getPaths() != null) {
-                for(Path path : api.getPaths()) {
-                    String routeID = camelUtils.normalizeRouteId(api, path);
-                    if(camelContext.getRoute(routeID) != null) {
-                        camelContext.getRouteController().stopRoute(routeID);
-                        camelContext.removeRoute(routeID);
-                    }
+            List<RunningApi> runningApis = runningApiManager.getRunningApiForApi(api.getId());
+            for(RunningApi runningApi : runningApis) {
+                if(api.getThrottlingPolicy() != null) {
+                    throttlingManager.removeThrottlingByRouteID(runningApi.getRouteId());
                 }
-            }
-            if(api.getSwaggerEndpoint() == null) {
-                camelContext.addRoutes(new SimpleRestRouteRepublisher(camelContext, camelUtils, grafanaUtils, throttlingManager, api));
-            } else {
-                List<Path> pathList = swaggerParser.parse(api.getSwaggerEndpoint());
-                for(Path path : pathList) {
-                    String routeID = camelUtils.normalizeRouteId(api, path);
-                    if(camelContext.getRoute(routeID) != null) {
-                        camelContext.getRouteController().stopRoute(routeID);
-                        camelContext.removeRoute(routeID);
-                    }
+                if(camelContext.getRoute(runningApi.getRouteId()) != null) {
+                    camelContext.getRouteController().stopRoute(runningApi.getRouteId());
+                    camelContext.removeRoute(runningApi.getRouteId());
                 }
-                api.setPaths(pathList);
-                camelContext.addRoutes(new SwaggerRouteRepublisher(camelContext, camelUtils, grafanaUtils, throttlingManager, api));
+                runningApiManager.removeRunningApi(runningApi);
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
     }
 
-    @Override
-    public void entryRemoved( EntryEvent<String, Api> event ) {
-        log.info("API deleted, undeploying");
+    private void addRunTimeApi(Api api) {
         try {
-            Api api = event.getValue();
-            if(api.getPaths() != null) {
-                for(Path path : api.getPaths()) {
-                    String routeID = camelUtils.normalizeRouteId(api, path);
-                    if(camelContext.getRoute(routeID) != null) {
-                        camelContext.getRouteController().stopRoute(routeID);
-                        camelContext.removeRoute(routeID);
-                    }
-                }
+            removeRunTimeApi(api);
+            if(api.getSwaggerEndpoint() == null) {
+                camelContext.addRoutes(new SimpleRestRouteRepublisher(camelContext, camelUtils, grafanaUtils, throttlingManager, api));
+            } else {
+                camelContext.addRoutes(new SwaggerRouteRepublisher(camelContext, camelUtils, grafanaUtils, throttlingManager, swaggerParser, api));
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);

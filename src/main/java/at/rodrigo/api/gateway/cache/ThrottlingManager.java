@@ -61,6 +61,18 @@ public class ThrottlingManager {
         }
     }
 
+    public void removeThrottlingByRouteID(String routeID) {
+        IMap<String, ThrottlingPolicy> entries = getThrottlingPolicies();
+        Iterator<String> iterator = entries.keySet().iterator();
+        while(iterator.hasNext()) {
+            String id = iterator.next();
+            ThrottlingPolicy throttlingPolicy = entries.get(id);
+            if(throttlingPolicy.getRouteID().contains(routeID)) {
+                getThrottlingPolicies().remove(id);
+            }
+        }
+    }
+
     ThrottlingPolicy cloneThrottling(ThrottlingPolicy throttlingPolicy) {
         ThrottlingPolicy localThrottlingPolicy = new ThrottlingPolicy();
         localThrottlingPolicy.setStartCountingAt(throttlingPolicy.getStartCountingAt());

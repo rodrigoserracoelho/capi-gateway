@@ -126,6 +126,22 @@ public class RunningApiManager {
         this.getCachedApi().put(runningApi.getRouteId(), runningApi);
     }
 
+    public List<RunningApi> getRunningApiForApi(String apiID) {
+        List<RunningApi> runningApis = new ArrayList<>();
+        Iterator<String> iterator = getCachedApi().keySet().iterator();
+        while(iterator.hasNext()) {
+            String key = iterator.next();
+            if(getCachedApi().get(key).getId().equals(apiID)) {
+                runningApis.add(getCachedApi().get(key));
+            }
+        }
+        return runningApis;
+    }
+
+    public void removeRunningApi(RunningApi runningApi) {
+        getCachedApi().remove(runningApi.getRouteId());
+    }
+
     public int count() {
         return getCachedApi().size();
     }
