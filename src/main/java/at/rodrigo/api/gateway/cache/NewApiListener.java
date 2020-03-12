@@ -1,11 +1,10 @@
 package at.rodrigo.api.gateway.cache;
 
 import at.rodrigo.api.gateway.entity.Api;
-import at.rodrigo.api.gateway.entity.Path;
 import at.rodrigo.api.gateway.entity.RunningApi;
 import at.rodrigo.api.gateway.parser.SwaggerParser;
 import at.rodrigo.api.gateway.routes.SimpleRestRouteRepublisher;
-import at.rodrigo.api.gateway.routes.SwaggerRouteRepublisher;
+import at.rodrigo.api.gateway.routes.SwaggerRoutePublisher;
 import at.rodrigo.api.gateway.utils.CamelUtils;
 import at.rodrigo.api.gateway.utils.GrafanaUtils;
 import com.hazelcast.core.EntryEvent;
@@ -84,7 +83,7 @@ public class NewApiListener implements EntryAddedListener<String, Api>, EntryRem
             if(api.getSwaggerEndpoint() == null) {
                 camelContext.addRoutes(new SimpleRestRouteRepublisher(camelContext, camelUtils, grafanaUtils, throttlingManager, api));
             } else {
-                camelContext.addRoutes(new SwaggerRouteRepublisher(camelContext, camelUtils, grafanaUtils, throttlingManager, swaggerParser, api));
+                camelContext.addRoutes(new SwaggerRoutePublisher(camelContext, camelUtils, grafanaUtils, throttlingManager, swaggerParser, api));
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);

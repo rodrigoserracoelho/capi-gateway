@@ -1,59 +1,47 @@
 package at.rodrigo.api.gateway.routes;
 
-
 import at.rodrigo.api.gateway.cache.ThrottlingManager;
 import at.rodrigo.api.gateway.entity.Api;
 import at.rodrigo.api.gateway.entity.Path;
 import at.rodrigo.api.gateway.parser.SwaggerParser;
-import at.rodrigo.api.gateway.repository.ApiRepository;
 import at.rodrigo.api.gateway.utils.CamelUtils;
 import at.rodrigo.api.gateway.utils.Constants;
 import at.rodrigo.api.gateway.utils.GrafanaUtils;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.camel.Exchange;
+import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.component.jackson.JacksonDataFormat;
 import org.apache.camel.model.RouteDefinition;
-import org.apache.camel.model.rest.RestBindingMode;
 import org.apache.camel.model.rest.RestOperationParamDefinition;
 import org.apache.camel.model.rest.RestParamType;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@Component
-@Slf4j
 public class SwaggerRoutePublisher extends RouteBuilder {
 
-    @Autowired
-    private ApiRepository apiRepository;
+    private Api api;
 
-    @Autowired
-    private SwaggerParser swaggerParser;
-
-    @Autowired
     private CamelUtils camelUtils;
 
-    @Autowired
     private GrafanaUtils grafanaUtils;
 
-    @Autowired
     private ThrottlingManager throttlingManager;
+
+    private SwaggerParser swaggerParser;
+
+    public SwaggerRoutePublisher(CamelContext context, CamelUtils camelUtils, GrafanaUtils grafanaUtils, ThrottlingManager throttlingManager, SwaggerParser swaggerParser, Api api) {
+        super(context);
+        this.api = api;
+        this.camelUtils = camelUtils;
+        this.grafanaUtils = grafanaUtils;
+        this.throttlingManager = throttlingManager;
+        this.swaggerParser = swaggerParser;
+    }
 
     @Override
     public void configure() {
-
-        log.info("Starting configuration of Swagger Routes");
-
-        List<Api> apiList = apiRepository.findAllBySwagger(true);
-        for(Api api : apiList) {
-            try {
-                addRoutes(api);
-            } catch(Exception e) {
-                log.error(e.getMessage(), e);
-            }
+        try {
+            addRoutes(api);
+        } catch(Exception e) {
+            log.error(e.getMessage(), e);
         }
     }
 
@@ -62,7 +50,7 @@ public class SwaggerRoutePublisher extends RouteBuilder {
         List<Path> pathList = swaggerParser.parse(api.getSwaggerEndpoint());
         api.setPaths(pathList);
 
-        for(Path path : pathList) {
+        for(Path path : api.getPaths()) {
 
             RestOperationParamDefinition restParamDefinition = new RestOperationParamDefinition();
             List<String> paramList = camelUtils.evaluatePath(path.getPath());
