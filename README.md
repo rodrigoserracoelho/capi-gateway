@@ -5,7 +5,7 @@
 
 ## Supports:
 * Easy deployment of Swagger and Open API endpoints.
-* Authorization (for the moment only access_token and password grant_types).
+* Authorization (Built-in authorization server).
 * Easy to block your API after N failed attempts. (you can define blocking strategies)
 * REST endpoint to manage your API's.
 * Automatically creates metrics for Prometheus (Verb granularity)
@@ -13,11 +13,10 @@
 * Automatically creates a Grafana dashboard with panels per verb (only count total for the moment)
 * Throttling (You can apply per API or per API Path)
 * Easy Installation (See Play with CAPI Gateway)
-* Easy enable HTTPS by adding your own certificate (read docker compose file)
 
-## What we want to support:
-* Implicit and Authorization code grant type.
-* Decent UI for management (Need time, any front enders out there?)
+## Soon available:
+* Angular API Manager Interface.
+* Keycloak integration (for replacing the authorization server)
 
 ## Example of an API definition
 
@@ -33,7 +32,6 @@
         "name": "YOUR HUMAN UNIQUE NAME",
         "secured": true,
         "context": "yourcontext",
-        "swagger": true,
         "swaggerEndpoint": "http://yourapidomain:8080/v2/api-docs",
         "blockIfInError": true,
         "maxAllowedFailedCalls": 10,
@@ -57,36 +55,13 @@
  * name (string) 
  * secured (boolean) - If true, CAPI will check if the token was signed by the authorization server (API Manager), and if your client is subscribed to the API. (For the moment we only support oauth2 bearer tokens).
  * context (string) - Context will be the path of your API in the CAPI environment. Ex.: https://localhost/gateway/yourcontext/
- * swagger (boolean) - If true CAPI will read your Swagger Definition. Your endpoint needs to be up. (CAPI support both Swagger and Open API)
- * swaggerEndpoint (string) - Your swagger endpoint
+* swaggerEndpoint (string) - Your swagger endpoint
  * blockIfInError (boolean) - If true, and if your api retuns an error (!200) CAPI will suspend the route to the faulty path, for the amount of time defined in the field: unblockAfterMinutes and after the number of attempts defined in the field: maxAllowedFailedCalls
- * 
+ 
 
-## API Object
-You can define your own paths, in case you dont have a Swagger Endpoint (Swagger 2/Open API), so if swagger: false, then CAPI will look for a list of PATH like the below example:
+## Capi Client Object 
+##### Will be replaced by Keycloak clients
 
-    {
-        "_id" : "91ab7422-7d37-454b-9b33-6f3e345c8b66",
-        "endpoint" : "localhost:8080",
-        "endpointType" : "HTTPS",
-        "name" : "YOUR-CUSTOM-API",
-        "secured" : false,
-        "context" : "your-custom-api",
-        "blockIfInError" : false
-        "paths" : [ 
-            {
-            "verb" : "GET",
-            "path" : "/services/path"
-            },
-            {
-            "verb" : "POST",
-            "path" : "/services/path"
-            }
-        ],
-        "swagger" : false
-    }
-
-## Capi Client Object
 Example of a capi client (with the password: web-client-secret)
 
     {
@@ -149,7 +124,6 @@ Don't forget to request a new token, after subscribing.
  - Kubernetes 1.9.2+ or Docker with docker-compose
 
 For kubernetes, please visit: https://github.com/rodrigoserracoelho/capi-gateway-k8s
-
 For Docker, please visit: https://github.com/rodrigoserracoelho/capi-docker
 
 ## What we use:
@@ -162,6 +136,7 @@ For Docker, please visit: https://github.com/rodrigoserracoelho/capi-docker
 * Mongo
 * Kafka
 * Zookeeper
+* Keycloak (under implementation)
 
 ## Some load results (Calling a protected service)
 #### Using apache benchmark on a 1 node docker container with SSL 
