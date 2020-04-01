@@ -25,3 +25,7 @@ jobs:
         java-version: 1.8
     - name: Build with Maven
       run: mvn package --file pom.xml
+    - name: Set version
+      run: echo ::set-env name=VERSION::$(mvn org.apache.maven.plugins:maven-help-plugin:3.1.0:evaluate -Dexpression=project.version -q -DforceStdout)
+    - name: Echo Version
+      run: echo $VERSION
