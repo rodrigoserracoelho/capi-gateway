@@ -3,7 +3,7 @@
 # CAPI Gateway
 ###### Light API Gateway implemented with Apache Camel
 
-![CAPI-Gateway-Diagram](https://github.com/rodrigoserracoelho/capi-gateway/blob/master/CAPI-Gateway.png)
+![CAPI-Gateway-Diagram](https://surisoft.io/assets/images/CAPI-Gateway-white.png)
 
 ## Supports:
 * Easy deployment of Swagger and Open API endpoints.
