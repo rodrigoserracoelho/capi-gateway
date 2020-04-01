@@ -45,7 +45,6 @@
     <com.google.cloud.tools-version>1.6.1</com.google.cloud.tools-version>
     <io.swagger.parser.v3-version>2.0.14</io.swagger.parser.v3-version>
     <com.nimbus-version>6.14</com.nimbus-version>
-    <at.rodrigo.api.gateway.entity-version>1.0</at.rodrigo.api.gateway.entity-version>
     <org.json-version>20140107</org.json-version>
     <org.projectlombok-version>1.18.2</org.projectlombok-version>
     <com.hazelcast-version>3.11.4</com.hazelcast-version>
@@ -185,11 +184,6 @@
       <groupId>org.json</groupId>
       <artifactId>json</artifactId>
       <version>${org.json-version}</version>
-    </dependency>
-    <dependency>
-      <groupId>at.rodrigo.api.gateway</groupId>
-      <artifactId>api-gateway-entity</artifactId>
-      <version>${at.rodrigo.api.gateway.entity-version}</version>
     </dependency>
 
     <!-- JWT dependencies -->

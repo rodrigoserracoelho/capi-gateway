@@ -16,7 +16,6 @@
 package at.rodrigo.api.gateway.utils;
 
 import at.rodrigo.api.gateway.entity.Api;
-import at.rodrigo.api.gateway.grafana.entity.GrafanaDashboard;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,7 +42,7 @@ public class GrafanaUtils {
                 HttpHeaders headers = new HttpHeaders();
                 headers.setContentType(MediaType.APPLICATION_JSON);
                 HttpEntity<Api> request = new HttpEntity<>(api, headers);
-                restTemplate.exchange(grafanaEndpoint, HttpMethod.POST, request, GrafanaDashboard.class);
+                restTemplate.exchange(grafanaEndpoint, HttpMethod.POST, request, String.class);
             } catch(Exception e) {
                 log.info(e.getMessage(), e);
             }
