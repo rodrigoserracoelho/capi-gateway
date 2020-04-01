@@ -1,4 +1,4 @@
-![CI](https://github.com/rodrigoserracoelho/capi-gateway/workflows/CI/badge.svg?branch=master)
+![CAPI-CICD](https://github.com/rodrigoserracoelho/capi-gateway/workflows/CAPI-CICD/badge.svg?branch=master)
 
 # CAPI Gateway
 ###### Light API Gateway implemented with Apache Camel
