@@ -49,4 +49,5 @@ public class RunningApi implements Serializable {
     private boolean internalExceptionVisible;
     private int connectTimeout;
     private int socketTimeout;
+    private String clientID;
 }

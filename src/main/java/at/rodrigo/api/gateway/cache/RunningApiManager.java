@@ -45,6 +45,7 @@ public class RunningApiManager {
     public void runApi(String routeId, Api api, String path, Verb verb) {
         RunningApi runningApi = new RunningApi();
         runningApi.setId(api.getId());
+        runningApi.setClientID(api.getClientID());
         runningApi.setRouteId(routeId);
         runningApi.setDisabled(false);
         runningApi.setFailedCalls(0);

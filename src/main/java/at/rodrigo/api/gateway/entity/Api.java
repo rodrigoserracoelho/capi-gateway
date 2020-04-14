@@ -46,4 +46,5 @@ public class Api implements Serializable {
     private boolean unblockAfter;
     private int unblockAfterMinutes;
     private ThrottlingPolicy throttlingPolicy;
+    private String clientID;
 }

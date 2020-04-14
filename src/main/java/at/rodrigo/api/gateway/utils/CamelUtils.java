@@ -138,7 +138,7 @@ public class CamelUtils {
         if(api.isSecured()) {
             routeDefinition
                     .setHeader(Constants.BLOCK_IF_IN_ERROR_HEADER, constant(api.isBlockIfInError()))
-                    .setHeader(Constants.API_ID_HEADER, constant(api.getId()))
+                    .setHeader(Constants.API_CLIENT_ID_HEADER, constant(api.getClientID()))
                     .process(pathProcessor)
                     .process(authProcessor)
                     .process(metricsProcessor)
@@ -182,7 +182,7 @@ public class CamelUtils {
         if(runningApi.isSecured()) {
             routeDefinition
                     .setHeader(Constants.BLOCK_IF_IN_ERROR_HEADER, constant(runningApi.isBlockIfInError()))
-                    .setHeader(Constants.API_ID_HEADER, constant(runningApi.getId()))
+                    .setHeader(Constants.API_CLIENT_ID_HEADER, constant(runningApi.getClientID()))
                     .process(authProcessor)
                     .process(pathProcessor)
                     .process(metricsProcessor)
