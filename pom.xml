@@ -37,7 +37,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <spring.boot-version>2.2.2.RELEASE</spring.boot-version>
     <docker.image.prefix>surisoft</docker.image.prefix>
-    <org.apache.camel.springboot-version>3.1.0</org.apache.camel.springboot-version>
+    <org.apache.camel.springboot-version>3.2.0</org.apache.camel.springboot-version>
     <org.junit.jupiter-version>5.1.0</org.junit.jupiter-version>
     <org.junit.platform-version>1.1.0</org.junit.platform-version>
     <org.apache.maven.plugins-version>2.19.1</org.apache.maven.plugins-version>
