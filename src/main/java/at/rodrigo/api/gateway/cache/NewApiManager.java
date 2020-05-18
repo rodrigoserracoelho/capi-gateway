@@ -43,4 +43,15 @@ public class NewApiManager {
         return hazelcastInstance.getMap(CacheConstants.API_IMAP_NAME);
     }
 
+    public Api getApiByContext(String context) {
+        IMap<String, Api> iMap = getCachedApi();
+        for(String id : iMap.keySet()) {
+            Api api = iMap.get(id);
+            if(api.getContext().equals(context)) {
+                return api;
+            }
+        }
+        return null;
+    }
+
 }

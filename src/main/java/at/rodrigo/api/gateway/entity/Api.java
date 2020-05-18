@@ -47,4 +47,7 @@ public class Api implements Serializable {
     private int unblockAfterMinutes;
     private ThrottlingPolicy throttlingPolicy;
     private String clientID;
+    private boolean corsEnabled;
+    private List<String> allowedOrigins;
+    private boolean credentialsAllowed;
 }
