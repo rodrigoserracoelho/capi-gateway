@@ -34,7 +34,7 @@ import java.io.IOException;
 @Slf4j
 public class CorsFilter implements Filter {
 
-    @Value("${camel.component.servlet.mapping.context-path}")
+    @Value("${api.gateway.cors.filter.context}")
     private String capiRootContext;
 
     @Autowired
@@ -45,22 +45,24 @@ public class CorsFilter implements Filter {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
 
-        String routeContext =  getRouteContext(request);
-
-        if(routeContext != null) {
-            Api api = newApiManager.getApiByContext(routeContext);
-            if(api != null) {
-                if(api.isCorsEnabled()) {
-                    if(api.getAllowedOrigins().contains(request.getHeader("Origin"))) {
-                        response.setHeader("Access-Control-Allow-Credentials", Boolean.toString(api.isCredentialsAllowed()));
-                        response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
-                        response.setHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE");
-                        response.setHeader("Access-Control-Allow-Headers", "Origin, Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization");
-                        response.setHeader("Access-Control-Max-Age", "1728000");
+        if(request.getRequestURI().startsWith(capiRootContext)) {
+            String routeContext =  getRouteContext(request);
+            if(routeContext != null) {
+                Api api = newApiManager.getApiByContext(routeContext);
+                if(api != null) {
+                    if(api.isCorsEnabled()) {
+                        if(api.getAllowedOrigins().contains(request.getHeader("Origin"))) {
+                            response.setHeader("Access-Control-Allow-Credentials", Boolean.toString(api.isCredentialsAllowed()));
+                            response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
+                            response.setHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE");
+                            response.setHeader("Access-Control-Allow-Headers", "Origin, Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization");
+                            response.setHeader("Access-Control-Max-Age", "1728000");
+                        }
                     }
                 }
             }
         }
+        filterChain.doFilter(servletRequest, servletResponse);
     }
 
     private String getRouteContext(HttpServletRequest request) {
