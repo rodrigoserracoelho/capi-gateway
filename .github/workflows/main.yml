@@ -19,7 +19,6 @@ jobs:
         servers: '[{ "id": "github", "username": "rodrigoserracoelho", "password": "${{ secrets.repo_token }}" }]'
     - name: Build with Maven
       env:
-        USERNAME: rodrigoserracoelho
         PASSWORD: ${{ secrets.repo_token }}
       run: mvn package --file pom.xml --settings ~/.m2/settings.xml
     - name: Set version
