@@ -33,6 +33,7 @@ public class Constants {
     public static final String HTTP4_CALL_PARAMS = "?throwExceptionOnFailure=false&bridgeEndpoint=true&copyHeaders=true&connectionClose=true";
     public static final String CAPI_CONTEXT_HEADER = "CapiContext";
     public static final String API_ID_HEADER = "api_id";
+    public static final String API_CLIENT_ID_HEADER = "api_client_id";
     public static final String CAPI_INTERNAL_ERROR = "capi-internal-error";
     public static final String CAPI_INTERNAL_ERROR_CLASS_NAME = "capi-internal-error-class-name";
     public static final String HTTP_CONNECT_TIMEOUT = "connectTimeout=";

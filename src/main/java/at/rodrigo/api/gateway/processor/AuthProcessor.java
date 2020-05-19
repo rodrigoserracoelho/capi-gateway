@@ -17,7 +17,6 @@ package at.rodrigo.api.gateway.processor;
 
 import at.rodrigo.api.gateway.exception.InvalidTokenException;
 import at.rodrigo.api.gateway.exception.NoSubscriptionException;
-import at.rodrigo.api.gateway.security.JWSChecker;
 import at.rodrigo.api.gateway.utils.Constants;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.JWKSet;
@@ -25,54 +24,69 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.JWSKeySelector;
 import com.nimbusds.jose.proc.JWSVerificationKeySelector;
+import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import lombok.extern.slf4j.Slf4j;
+import net.minidev.json.JSONArray;
+import net.minidev.json.JSONObject;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
 import java.text.ParseException;
-import java.util.List;
 
 @Component
 @Slf4j
 public class AuthProcessor implements Processor {
 
-   @Autowired
-   private JWSChecker jwsChecker;
+   @Value("${capi.authorization.keys.endpoint}")
+   private String capiAuthorizationKeysEndpoint;
 
    @Autowired
-   JWKSet jwkSet;
+   private RestTemplate restTemplate;
 
     public void process(Exchange exchange) {
         boolean validCall = false;
         try {
-            String apiID = exchange.getIn().getHeader(Constants.API_ID_HEADER).toString();
             String jwtToken = exchange.getIn().getHeader(Constants.AUTHORIZATION_HEADER).toString().substring("Bearer ".length());
+            String apiClientID = exchange.getIn().getHeader(Constants.API_CLIENT_ID_HEADER).toString();
             exchange.getIn().removeHeader(Constants.AUTHORIZATION_HEADER);
             exchange.getIn().removeHeader(Constants.BLOCK_IF_IN_ERROR_HEADER);
-            exchange.getIn().removeHeader(Constants.API_ID_HEADER);
+            exchange.getIn().removeHeader(Constants.API_CLIENT_ID_HEADER);
 
-            if(apiID != null && jwtToken != null) {
+            if(apiClientID != null && jwtToken != null) {
                 ConfigurableJWTProcessor jwtProcessor = new DefaultJWTProcessor();
-                JWKSource keySource = new ImmutableJWKSet(jwkSet);
-                JWSAlgorithm expectedJWSAlg = jwsChecker.getAlgorithm(jwtToken);
-                JWSKeySelector keySelector = new JWSVerificationKeySelector(expectedJWSAlg, keySource);
-                jwtProcessor.setJWSKeySelector(keySelector);
-                JWTClaimsSet claimsSet = jwtProcessor.process(jwtToken, null);
-                if(claimsSet != null) {
-                    List<String> authorities = (List<String>) claimsSet.getClaim("authorities");
-                    if(authorities != null && authorities.contains(apiID)) {
+
+                ResponseEntity<String> publicKeyEndpoint = restTemplate.getForEntity(capiAuthorizationKeysEndpoint, String.class);
+                if(publicKeyEndpoint.getStatusCode().is2xxSuccessful()) {
+                    JWKSet jwkSet = JWKSet.parse(publicKeyEndpoint.getBody());
+                    JWKSource keySource = new ImmutableJWKSet(jwkSet);
+                    JWSAlgorithm expectedJWSAlg = JWSAlgorithm.RS256;
+                    JWSKeySelector<SecurityContext> keySelector = new JWSVerificationKeySelector<>(expectedJWSAlg, keySource);
+                    jwtProcessor.setJWSKeySelector(keySelector);
+                    JWTClaimsSet claimsSet = jwtProcessor.process(jwtToken, null);
+                    JSONObject realmAccessClaimSet = claimsSet.getJSONObjectClaim("realm_access");
+                    JSONArray rolesObject = (JSONArray) realmAccessClaimSet.get("roles");
+                    if(rolesObject.contains(apiClientID)) {
                         validCall = true;
                     }
-                }
-                if(!validCall) {
+
+                    if(!validCall) {
+                        exchange.getIn().setHeader(Constants.REASON_CODE_HEADER, HttpStatus.FORBIDDEN.value());
+                        exchange.getIn().setHeader(Constants.REASON_MESSAGE_HEADER, "You are not subscribed to this API");
+                        exchange.setException(new NoSubscriptionException());
+                    }
+
+                } else {
                     exchange.getIn().setHeader(Constants.REASON_CODE_HEADER, HttpStatus.FORBIDDEN.value());
-                    exchange.getIn().setHeader(Constants.REASON_MESSAGE_HEADER, "You are not subscribed to this API");
+                    exchange.getIn().setHeader(Constants.REASON_MESSAGE_HEADER, "Problem loading Public Keys");
                     exchange.setException(new NoSubscriptionException());
                 }
             } else {

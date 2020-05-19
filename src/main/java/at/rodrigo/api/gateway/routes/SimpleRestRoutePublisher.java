@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@Component
+//@Component
 @Slf4j
 public class SimpleRestRoutePublisher extends RouteBuilder {
 
