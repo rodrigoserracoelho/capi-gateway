@@ -16,11 +16,11 @@ jobs:
     - name: maven-settings-xml-action
       uses: whelk-io/maven-settings-xml-action@v6
       with:
-        servers: '[{ "id": "github", "username": "rodrigoserracoelho", "password": "${{ secrets.GITHUB_TOKEN }}" }]'
+        servers: '[{ "id": "github", "username": "${{ github.actor }}", "password": "${{ secrets.repo_token }}" }]'
     - name: Build with Maven
       env:
         USENAME: ${{ github.actor }}
-        PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+        PASSWORD: ${{ secrets.repo_token }}
       run: mvn package --file pom.xml --settings ~/.m2/settings.xml
     - name: Set version
       run: echo ::set-env name=VERSION::$(mvn org.apache.maven.plugins:maven-help-plugin:3.1.0:evaluate -Dexpression=project.version -q -DforceStdout)
