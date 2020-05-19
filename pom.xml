@@ -50,6 +50,7 @@
     <com.hazelcast-version>3.11.4</com.hazelcast-version>
     <io.micrometer-version>1.3.2</io.micrometer-version>
     <io.zipkin.reporter2-version>2.7.14</io.zipkin.reporter2-version>
+    <api-gateway-entity.version>1.3.2</api-gateway-entity.version>
   </properties>
 
   <dependencies>
@@ -76,6 +77,13 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-mongodb</artifactId>
+    </dependency>
+
+    <!-- CAPI Entities -->
+    <dependency>
+      <groupId>at.rodrigo.api.gateway</groupId>
+      <artifactId>api-gateway-entity</artifactId>
+      <version>${api-gateway-entity.version}</version>
     </dependency>
 
     <!-- Camel -->

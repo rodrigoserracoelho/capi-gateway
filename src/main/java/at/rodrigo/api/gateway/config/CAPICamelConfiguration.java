@@ -30,14 +30,20 @@ import org.apache.camel.component.micrometer.DistributionStatisticConfigFilter;
 import org.apache.camel.component.micrometer.messagehistory.MicrometerMessageHistoryFactory;
 import org.apache.camel.component.micrometer.routepolicy.MicrometerRoutePolicyFactory;
 import org.apache.camel.zipkin.ZipkinTracer;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.ssl.SSLContextBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 import zipkin2.reporter.AsyncReporter;
 import zipkin2.reporter.okhttp3.OkHttpSender;
 
+import javax.net.ssl.SSLContext;
 import java.io.File;
 import java.io.FileInputStream;
 import java.security.KeyFactory;
@@ -92,11 +98,6 @@ public class CAPICamelConfiguration {
 
     @Value("${gateway.cache.zookeeper.group.key}")
     private String zookeeperGroupKey;
-    @Bean
-    RestTemplate restTemplate() {
-        return new RestTemplate();
-    }
-
 
     @Bean
     public Config hazelCastConfig() {
@@ -170,7 +171,30 @@ public class CAPICamelConfiguration {
         System.setProperty("javax.net.ssl.trustStore", absolutePath);
         System.setProperty("javax.net.ssl.trustStorePassword", trustStorePassword);
         System.setProperty("javax.net.ssl.keyStoreType", "JKS");
-
     }
 
+    @Bean
+    RestTemplate restTemplate() {
+
+        final SSLContext sslContext;
+        try {
+            File trustStore = new File(trustStorePath);
+            sslContext = SSLContextBuilder.create()
+                    .loadTrustMaterial(trustStore, trustStorePassword.toCharArray())
+                    .build();
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to setup client SSL context", e);
+        }
+
+        final HttpClient httpClient = HttpClientBuilder.create()
+                .setSSLContext(sslContext)
+                .build();
+
+        final ClientHttpRequestFactory requestFactory =
+                new HttpComponentsClientHttpRequestFactory(httpClient);
+
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.setRequestFactory(requestFactory);
+        return restTemplate;
+    }
 }
