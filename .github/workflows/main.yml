@@ -19,7 +19,7 @@ jobs:
         servers: '[{ "id": "github", "username": "${{ github.actor }}", "password": "${{ secrets.user_pwd }}" }]'
     - name: Build with Maven
       env:
-        USENAME: ${{ github.actor }}
+        USERNAME: ${{ github.actor }}
         PASSWORD: ${{ secrets.user_pwd }}
       run: mvn package --file pom.xml --settings ~/.m2/settings.xml
     - name: Set version
