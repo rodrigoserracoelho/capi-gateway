@@ -317,10 +317,4 @@
       </plugin>
     </plugins>
   </build>
-  <repositories>
-    <repository>
-      <id>GitHub CAPI Apache Maven Packages</id>
-      <url>https://maven.pkg.github.com/rodrigoserracoelho/capi-gateway-entity</url>
-    </repository>
-  </repositories>
 </project>
