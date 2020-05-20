@@ -55,44 +55,46 @@ public class AuthProcessor implements Processor {
     public void process(Exchange exchange) {
         boolean validCall = false;
         try {
-            String jwtToken = exchange.getIn().getHeader(Constants.AUTHORIZATION_HEADER).toString().substring("Bearer ".length());
-            String apiClientID = exchange.getIn().getHeader(Constants.API_CLIENT_ID_HEADER).toString();
-            exchange.getIn().removeHeader(Constants.AUTHORIZATION_HEADER);
-            exchange.getIn().removeHeader(Constants.BLOCK_IF_IN_ERROR_HEADER);
-            exchange.getIn().removeHeader(Constants.API_CLIENT_ID_HEADER);
-
-            if(apiClientID != null && jwtToken != null) {
-                ConfigurableJWTProcessor jwtProcessor = new DefaultJWTProcessor();
-
-                ResponseEntity<String> publicKeyEndpoint = restTemplate.getForEntity(capiAuthorizationKeysEndpoint, String.class);
-                if(publicKeyEndpoint.getStatusCode().is2xxSuccessful()) {
-                    JWKSet jwkSet = JWKSet.parse(publicKeyEndpoint.getBody());
-                    JWKSource keySource = new ImmutableJWKSet(jwkSet);
-                    JWSAlgorithm expectedJWSAlg = JWSAlgorithm.RS256;
-                    JWSKeySelector<SecurityContext> keySelector = new JWSVerificationKeySelector<>(expectedJWSAlg, keySource);
-                    jwtProcessor.setJWSKeySelector(keySelector);
-                    JWTClaimsSet claimsSet = jwtProcessor.process(jwtToken, null);
-                    JSONObject realmAccessClaimSet = claimsSet.getJSONObjectClaim("realm_access");
-                    JSONArray rolesObject = (JSONArray) realmAccessClaimSet.get("roles");
-                    if(rolesObject.contains(apiClientID)) {
-                        validCall = true;
-                    }
-
-                    if(!validCall) {
+            if(exchange.getIn().getHeader(Constants.AUTHORIZATION_HEADER) == null) {
+                exchange.getIn().setHeader(Constants.REASON_CODE_HEADER, HttpStatus.FORBIDDEN.value());
+                exchange.getIn().setHeader(Constants.REASON_MESSAGE_HEADER, "No authorization (Bearer) token provided.");
+                exchange.setException(new NoSubscriptionException());
+            } else {
+                String jwtToken = exchange.getIn().getHeader(Constants.AUTHORIZATION_HEADER).toString().substring("Bearer ".length());
+                String apiClientID = exchange.getIn().getHeader(Constants.API_CLIENT_ID_HEADER).toString();
+                exchange.getIn().removeHeader(Constants.AUTHORIZATION_HEADER);
+                exchange.getIn().removeHeader(Constants.BLOCK_IF_IN_ERROR_HEADER);
+                exchange.getIn().removeHeader(Constants.API_CLIENT_ID_HEADER);
+                if(apiClientID != null && jwtToken != null) {
+                    ConfigurableJWTProcessor jwtProcessor = new DefaultJWTProcessor();
+                    ResponseEntity<String> publicKeyEndpoint = restTemplate.getForEntity(capiAuthorizationKeysEndpoint, String.class);
+                    if(publicKeyEndpoint.getStatusCode().is2xxSuccessful()) {
+                        JWKSet jwkSet = JWKSet.parse(publicKeyEndpoint.getBody());
+                        JWKSource keySource = new ImmutableJWKSet(jwkSet);
+                        JWSAlgorithm expectedJWSAlg = JWSAlgorithm.RS256;
+                        JWSKeySelector<SecurityContext> keySelector = new JWSVerificationKeySelector<>(expectedJWSAlg, keySource);
+                        jwtProcessor.setJWSKeySelector(keySelector);
+                        JWTClaimsSet claimsSet = jwtProcessor.process(jwtToken, null);
+                        JSONObject realmAccessClaimSet = claimsSet.getJSONObjectClaim("realm_access");
+                        JSONArray rolesObject = (JSONArray) realmAccessClaimSet.get("roles");
+                        if(rolesObject.contains(apiClientID)) {
+                            validCall = true;
+                        }
+                        if(!validCall) {
+                            exchange.getIn().setHeader(Constants.REASON_CODE_HEADER, HttpStatus.FORBIDDEN.value());
+                            exchange.getIn().setHeader(Constants.REASON_MESSAGE_HEADER, "You are not subscribed to this API");
+                            exchange.setException(new NoSubscriptionException());
+                        }
+                    } else {
                         exchange.getIn().setHeader(Constants.REASON_CODE_HEADER, HttpStatus.FORBIDDEN.value());
-                        exchange.getIn().setHeader(Constants.REASON_MESSAGE_HEADER, "You are not subscribed to this API");
+                        exchange.getIn().setHeader(Constants.REASON_MESSAGE_HEADER, "Problem loading Public Keys");
                         exchange.setException(new NoSubscriptionException());
                     }
-
                 } else {
-                    exchange.getIn().setHeader(Constants.REASON_CODE_HEADER, HttpStatus.FORBIDDEN.value());
-                    exchange.getIn().setHeader(Constants.REASON_MESSAGE_HEADER, "Problem loading Public Keys");
-                    exchange.setException(new NoSubscriptionException());
+                    exchange.getIn().setHeader(Constants.REASON_CODE_HEADER, HttpStatus.BAD_REQUEST.value());
+                    exchange.getIn().setHeader(Constants.REASON_MESSAGE_HEADER, "Invalid token was provided");
+                    exchange.setException(new InvalidTokenException());
                 }
-            } else {
-                exchange.getIn().setHeader(Constants.REASON_CODE_HEADER, HttpStatus.BAD_REQUEST.value());
-                exchange.getIn().setHeader(Constants.REASON_MESSAGE_HEADER, "Invalid token was provided");
-                exchange.setException(new InvalidTokenException());
             }
         } catch(ParseException exception) {
             exchange.getIn().setHeader(Constants.REASON_CODE_HEADER, HttpStatus.BAD_REQUEST.value());
