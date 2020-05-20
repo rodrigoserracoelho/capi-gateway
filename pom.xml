@@ -254,6 +254,9 @@
           <to>
             <image>${docker.image.prefix}/${project.artifactId}:${project.version}</image>
           </to>
+          <container>
+            <creationTime>USE_CURRENT_TIMESTAMP</creationTime>
+          </container>
         </configuration>
       </plugin>
       <plugin>
@@ -272,7 +275,6 @@
                   <groupId>${project.groupId}</groupId>
                   <artifactId>${project.artifactId}</artifactId>
                   <version>${project.version}</version>
-                  <creationTime>USE_CURRENT_TIMESTAMP</creationTime>
                 </artifactItem>
               </artifactItems>
             </configuration>
