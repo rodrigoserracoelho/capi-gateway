@@ -42,7 +42,7 @@
     <org.junit.platform-version>1.1.0</org.junit.platform-version>
     <org.apache.maven.plugins-version>2.19.1</org.apache.maven.plugins-version>
     <org.jacoco-version>0.8.0</org.jacoco-version>
-    <com.google.cloud.tools-version>1.6.1</com.google.cloud.tools-version>
+    <com.google.cloud.tools-version>2.2.0</com.google.cloud.tools-version>
     <io.swagger.parser.v3-version>2.0.14</io.swagger.parser.v3-version>
     <com.nimbus-version>6.14</com.nimbus-version>
     <org.json-version>20140107</org.json-version>
@@ -272,7 +272,7 @@
                   <groupId>${project.groupId}</groupId>
                   <artifactId>${project.artifactId}</artifactId>
                   <version>${project.version}</version>
-                  <useCurrentTimestamp>true</useCurrentTimestamp>
+                  <creationTime>USE_CURRENT_TIMESTAMP</creationTime>
                 </artifactItem>
               </artifactItems>
             </configuration>
