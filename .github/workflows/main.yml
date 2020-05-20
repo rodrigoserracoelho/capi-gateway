@@ -13,15 +13,8 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
-    - name: maven-settings-xml-action
-      uses: whelk-io/maven-settings-xml-action@v6
-      with:
-        servers: '[{ "id": "github", "username": "${{ github.actor }}", "password": "${{ secrets.user_pwd }}" }]'
     - name: Build with Maven
-      env:
-        username: ${{ github.actor }}
-        password: ${{ secrets.user_pwd }}
-      run: mvn -v package --file pom.xml --settings ~/.m2/settings.xml
+      run: mvn package --file pom.xml
     - name: Set version
       run: echo ::set-env name=VERSION::$(mvn org.apache.maven.plugins:maven-help-plugin:3.1.0:evaluate -Dexpression=project.version -q -DforceStdout)
     - name: Docker Publish
