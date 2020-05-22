@@ -32,7 +32,6 @@ public class CAPICacheConfig extends Config {
             getNetworkConfig().getJoin().getMulticastConfig().setEnabled(false);
             setProperty(GroupProperty.DISCOVERY_SPI_ENABLED.getName(), "true");
             setProperty("connection-timeout-seconds", "30");
-            setProperty("hazelcast.rest.enabled", "true");
 
             DiscoveryStrategyConfig discoveryStrategyConfig = new DiscoveryStrategyConfig(new ZookeeperDiscoveryStrategyFactory());
             discoveryStrategyConfig.addProperty(ZookeeperDiscoveryProperties.ZOOKEEPER_URL.key(), zookeeperHost);
