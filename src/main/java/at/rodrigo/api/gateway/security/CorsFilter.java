@@ -70,7 +70,7 @@ public class CorsFilter implements Filter {
                     }
                 }
             }
-        } else if((request.getRequestURI().startsWith(capiHealthCheckContext) || request.getRequestURI().startsWith(apiDeployedRoutesContext)) && request.getHeader("Origin").equals(capiGatewayManagerOrigin)) {
+        } else if((request.getRequestURI().startsWith(capiHealthCheckContext) || request.getRequestURI().startsWith(apiDeployedRoutesContext)) && request.getHeader("Origin") != null && request.getHeader("Origin").equals(capiGatewayManagerOrigin)) {
             response.setHeader("Access-Control-Allow-Credentials", "false");
             response.setHeader("Access-Control-Allow-Origin", capiGatewayManagerOrigin);
             response.setHeader("Access-Control-Allow-Methods", "GET");
