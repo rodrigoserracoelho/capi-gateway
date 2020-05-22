@@ -37,6 +37,12 @@ public class CorsFilter implements Filter {
     @Value("${api.gateway.cors.filter.context}")
     private String capiRootContext;
 
+    @Value("${api.health.check.context}")
+    private String capiHealthCheckEndpoint;
+
+    @Value("${api.gateway.manager.origin}")
+    private String capiGatewayManagerOrigin;
+
     @Autowired
     private NewApiManager newApiManager;
 
@@ -61,6 +67,12 @@ public class CorsFilter implements Filter {
                     }
                 }
             }
+        } else if(request.getRequestURI().startsWith(capiHealthCheckEndpoint) && request.getHeader("Origin").equals(capiGatewayManagerOrigin)) {
+            response.setHeader("Access-Control-Allow-Credentials", "false");
+            response.setHeader("Access-Control-Allow-Origin", capiGatewayManagerOrigin);
+            response.setHeader("Access-Control-Allow-Methods", "GET");
+            response.setHeader("Access-Control-Allow-Headers", "Origin, Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization");
+            response.setHeader("Access-Control-Max-Age", "1728000");
         }
         filterChain.doFilter(servletRequest, servletResponse);
     }
