@@ -38,10 +38,13 @@ public class CorsFilter implements Filter {
     private String capiRootContext;
 
     @Value("${api.health.check.context}")
-    private String capiHealthCheckEndpoint;
+    private String capiHealthCheckContext;
 
     @Value("${api.gateway.manager.origin}")
     private String capiGatewayManagerOrigin;
+
+    @Value("${api.deployed.routes.context}")
+    private String apiDeployedRoutesContext;
 
     @Autowired
     private NewApiManager newApiManager;
@@ -67,7 +70,7 @@ public class CorsFilter implements Filter {
                     }
                 }
             }
-        } else if(request.getRequestURI().startsWith(capiHealthCheckEndpoint) && request.getHeader("Origin").equals(capiGatewayManagerOrigin)) {
+        } else if((request.getRequestURI().startsWith(capiHealthCheckContext) || request.getRequestURI().startsWith(apiDeployedRoutesContext)) && request.getHeader("Origin").equals(capiGatewayManagerOrigin)) {
             response.setHeader("Access-Control-Allow-Credentials", "false");
             response.setHeader("Access-Control-Allow-Origin", capiGatewayManagerOrigin);
             response.setHeader("Access-Control-Allow-Methods", "GET");
