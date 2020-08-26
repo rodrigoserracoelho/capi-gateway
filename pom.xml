@@ -262,6 +262,9 @@
         <artifactId>jib-maven-plugin</artifactId>
         <version>${com.google.cloud.tools-version}</version>
         <configuration>
+          <from>
+            <image>openjdk:14</image>
+          </from>
           <to>
             <image>${docker.image.prefix}/${project.artifactId}:${project.version}</image>
           </to>
