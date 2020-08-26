@@ -18,6 +18,8 @@ package at.rodrigo.api.gateway.routes;
 import at.rodrigo.api.gateway.cache.ThrottlingManager;
 import at.rodrigo.api.gateway.entity.Api;
 import at.rodrigo.api.gateway.entity.Path;
+import at.rodrigo.api.gateway.grafana.entity.Panel;
+import at.rodrigo.api.gateway.grafana.http.GrafanaDashboardBuilder;
 import at.rodrigo.api.gateway.utils.CamelUtils;
 import at.rodrigo.api.gateway.utils.GrafanaUtils;
 import org.apache.camel.CamelContext;
@@ -26,6 +28,7 @@ import org.apache.camel.model.RouteDefinition;
 import org.apache.camel.model.rest.RestOperationParamDefinition;
 import org.apache.camel.model.rest.RestParamType;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class SimpleRestRouteRepublisher extends RouteBuilder {
@@ -34,15 +37,15 @@ public class SimpleRestRouteRepublisher extends RouteBuilder {
 
     private CamelUtils camelUtils;
 
-    private GrafanaUtils grafanaUtils;
+    private GrafanaDashboardBuilder grafanaDashboardBuilder;
 
     private ThrottlingManager throttlingManager;
 
-    public SimpleRestRouteRepublisher(CamelContext context, CamelUtils camelUtils, GrafanaUtils grafanaUtils, ThrottlingManager throttlingManager, Api api) {
+    public SimpleRestRouteRepublisher(CamelContext context, CamelUtils camelUtils, GrafanaDashboardBuilder grafanaDashboardBuilder, ThrottlingManager throttlingManager, Api api) {
         super(context);
         this.api = api;
         this.camelUtils = camelUtils;
-        this.grafanaUtils = grafanaUtils;
+        this.grafanaDashboardBuilder = grafanaDashboardBuilder;
         this.throttlingManager = throttlingManager;
     }
 
@@ -59,6 +62,13 @@ public class SimpleRestRouteRepublisher extends RouteBuilder {
     }
 
     void addRoutes(Api api) throws  Exception {
+
+        List<Panel> grafanaPanels;
+
+        if(grafanaDashboardBuilder != null) {
+            grafanaPanels = new ArrayList<>();
+        }
+
         for(Path path : api.getPaths()) {
             if(!path.getPath().equals("/error")) {
                 RestOperationParamDefinition restParamDefinition = new RestOperationParamDefinition();
@@ -98,6 +108,10 @@ public class SimpleRestRouteRepublisher extends RouteBuilder {
             }
         }
         throttlingManager.applyThrottling(api);
-        grafanaUtils.addToGrafana(api);
+
+        if(grafanaDashboardBuilder != null) {
+            //grafanaUtils.addToGrafana(api);
+        }
+
     }
 }

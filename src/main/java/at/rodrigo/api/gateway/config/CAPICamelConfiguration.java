@@ -16,6 +16,7 @@
 package at.rodrigo.api.gateway.config;
 
 import at.rodrigo.api.gateway.cache.CAPICacheConfig;
+import at.rodrigo.api.gateway.grafana.http.GrafanaDashboardBuilder;
 import at.rodrigo.api.gateway.utils.Constants;
 import com.hazelcast.config.Config;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -67,19 +68,19 @@ public class CAPICamelConfiguration {
     private String zipkinEndpoint;
 
     @Value("${token.provider.key-alias}")
-    String tokenProviderKeyAlias;
+    private String tokenProviderKeyAlias;
 
     @Value("${token.provider.key-store-password}")
-    String tokenProviderKeyPassword;
+    private String tokenProviderKeyPassword;
 
     @Value("${token.provider.key-store}")
-    String tokenProviderKeyStore;
+    private String tokenProviderKeyStore;
 
     @Value("${server.ssl.trust-store}")
-    String trustStorePath;
+    private String trustStorePath;
 
     @Value("${server.ssl.trust-store-password}")
-    String trustStorePassword;
+    private String trustStorePassword;
 
     @Autowired
     private CamelContext camelContext;
@@ -98,6 +99,28 @@ public class CAPICamelConfiguration {
 
     @Value("${gateway.cache.zookeeper.group.key}")
     private String zookeeperGroupKey;
+
+    @Value("${api.gateway.grafana.create.dashboard}")
+    private boolean createGrafanaDashboard;
+
+    @Value("${api.gateway.grafana.endpoint}")
+    private String grafanaEndpoint;
+
+    @Value("${api.gateway.grafana.user}")
+    private String grafanaUser;
+
+    @Value("${api.gateway.grafana.password}")
+    private String grafanaPassword;
+
+    @Value("${api.gateway.grafana.token}")
+    private String grafanaToken;
+
+    @Value("${api.gateway.grafana.basic.auth}")
+    private boolean grafanaBasicAuth;
+
+    @Value("${api.gateway.grafana.datasource}")
+    private String grafanaDataSource;
+
 
     @Bean
     public Config hazelCastConfig() {
@@ -196,5 +219,14 @@ public class CAPICamelConfiguration {
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.setRequestFactory(requestFactory);
         return restTemplate;
+    }
+
+    @Bean
+    GrafanaDashboardBuilder grafanaDashboardBuilder() {
+        if(createGrafanaDashboard) {
+            return new GrafanaDashboardBuilder(grafanaEndpoint, grafanaBasicAuth, grafanaUser, grafanaPassword, grafanaToken, grafanaDataSource);
+        } else {
+            return null;
+        }
     }
 }

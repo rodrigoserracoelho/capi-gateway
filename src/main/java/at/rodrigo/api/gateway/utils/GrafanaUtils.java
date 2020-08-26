@@ -23,11 +23,11 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-@Component
-@Slf4j
+//@Component
+//@Slf4j
 public class GrafanaUtils {
 
-    @Value("${api.gateway.grafana.create.panels}")
+    /*@Value("${api.gateway.grafana.create.panels}")
     private boolean autoCreatePanels;
 
     @Value("${api.gateway.grafana.endpoint}")
@@ -47,5 +47,5 @@ public class GrafanaUtils {
                 log.info(e.getMessage(), e);
             }
         }
-    }
+    }*/
 }

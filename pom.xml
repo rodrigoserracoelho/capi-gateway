@@ -22,7 +22,7 @@
   <groupId>at.rodrigo.api.gateway</groupId>
   <artifactId>capi-gateway</artifactId>
   <packaging>jar</packaging>
-  <version>1.4.0</version>
+  <version>1.4.1</version>
 
   <name>CAPI - API Gateway</name>
 
@@ -51,6 +51,7 @@
     <io.micrometer-version>1.3.2</io.micrometer-version>
     <io.zipkin.reporter2-version>2.7.14</io.zipkin.reporter2-version>
     <api-gateway-entity.version>1.3.2</api-gateway-entity.version>
+    <api-gateway-grafana.version>1.0</api-gateway-grafana.version>
   </properties>
 
   <dependencies>
@@ -242,7 +243,7 @@
     <dependency>
       <groupId>at.rodrigo.api.gateway</groupId>
       <artifactId>api-gateway-grafana</artifactId>
-      <version>1.0</version>
+      <version>${api-gateway-grafana.version}</version>
     </dependency>
   </dependencies>
 

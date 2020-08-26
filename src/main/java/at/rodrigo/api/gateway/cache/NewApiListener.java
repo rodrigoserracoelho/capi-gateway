@@ -17,6 +17,7 @@ package at.rodrigo.api.gateway.cache;
 
 import at.rodrigo.api.gateway.entity.Api;
 import at.rodrigo.api.gateway.entity.RunningApi;
+import at.rodrigo.api.gateway.grafana.http.GrafanaDashboardBuilder;
 import at.rodrigo.api.gateway.parser.SwaggerParser;
 import at.rodrigo.api.gateway.routes.SimpleRestRouteRepublisher;
 import at.rodrigo.api.gateway.routes.SwaggerRoutePublisher;
@@ -43,8 +44,8 @@ public class NewApiListener implements EntryAddedListener<String, Api>, EntryRem
     @Autowired
     private CamelUtils camelUtils;
 
-    @Autowired
-    private GrafanaUtils grafanaUtils;
+    @Autowired(required = false)
+    private GrafanaDashboardBuilder grafanaDashboardBuilder;
 
     @Autowired
     private SwaggerParser swaggerParser;
@@ -96,9 +97,9 @@ public class NewApiListener implements EntryAddedListener<String, Api>, EntryRem
         try {
             removeRunTimeApi(api);
             if(api.getSwaggerEndpoint() == null) {
-                camelContext.addRoutes(new SimpleRestRouteRepublisher(camelContext, camelUtils, grafanaUtils, throttlingManager, api));
+                camelContext.addRoutes(new SimpleRestRouteRepublisher(camelContext, camelUtils, grafanaDashboardBuilder, throttlingManager, api));
             } else {
-                camelContext.addRoutes(new SwaggerRoutePublisher(camelContext, camelUtils, grafanaUtils, throttlingManager, swaggerParser, api));
+                camelContext.addRoutes(new SwaggerRoutePublisher(camelContext, camelUtils, grafanaDashboardBuilder, throttlingManager, swaggerParser, api));
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
