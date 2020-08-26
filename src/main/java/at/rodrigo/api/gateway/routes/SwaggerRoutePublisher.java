@@ -114,7 +114,7 @@ public class SwaggerRoutePublisher extends RouteBuilder {
             }
 
             if(grafanaPanels != null) {
-                Panel panel = grafanaDashboardBuilder.buildPanelObject(2, routeID, routeID);
+                Panel panel = grafanaDashboardBuilder.buildPanelObject(routeID, routeID);
                 grafanaPanels.add(panel);
             }
         }
