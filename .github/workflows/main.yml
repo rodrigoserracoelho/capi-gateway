@@ -11,13 +11,19 @@ jobs:
     - uses: actions/checkout@v2
       with:
         repository: 'rodrigoserracoelho/capi-grafana' 
-        path: capi-grafana  
+        path: capi-grafana
+    - uses: actions/checkout@v2
+        with:
+          repository: 'rodrigoserracoelho/capi-gateway-entity'
+          path: capi-gateway-entity
     - name: Set up JDK 14
       uses: actions/setup-java@v1
       with:
         java-version: 14
     - name: Build with Maven
       run: mvn install --file capi-grafana/pom.xml
+    - name: Build with Maven
+      run: mvn install --file capi-gateway-entity/pom.xml
     - uses: actions/checkout@v2  
     - name: Build with Maven
       run: mvn compile -DskipTests jib:build -Djib.to.auth.username=surisoft -Djib.to.auth.password=${{ secrets.docker_secret }} --file pom.xml
