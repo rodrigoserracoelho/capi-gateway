@@ -239,6 +239,11 @@
       <artifactId>curator-x-discovery</artifactId>
       <version>4.3.0</version>
     </dependency>
+    <dependency>
+      <groupId>at.rodrigo.api.gateway</groupId>
+      <artifactId>api-gateway-grafana</artifactId>
+      <version>1.0</version>
+    </dependency>
   </dependencies>
 
   <build>
