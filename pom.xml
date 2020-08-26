@@ -252,6 +252,10 @@
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.8.1</version>
+        <configuration>
+          <source>14</source>
+          <target>14</target>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>com.google.cloud.tools</groupId>
