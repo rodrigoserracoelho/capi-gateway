@@ -13,9 +13,9 @@ jobs:
         repository: 'rodrigoserracoelho/capi-grafana' 
         path: capi-grafana
     - uses: actions/checkout@v2
-        with:
-          repository: 'rodrigoserracoelho/capi-gateway-entity'
-          path: capi-gateway-entity
+      with:
+        repository: 'rodrigoserracoelho/capi-gateway-entity'
+        path: capi-gateway-entity
     - name: Set up JDK 14
       uses: actions/setup-java@v1
       with:
