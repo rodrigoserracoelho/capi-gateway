@@ -18,5 +18,6 @@ jobs:
         java-version: 14
     - name: Build with Maven
       run: mvn install --file capi-gateway-entity/pom.xml
+    - uses: actions/checkout@v2  
     - name: Build with Maven
       run: mvn compile -DskipTests jib:build -Djib.to.auth.username=surisoft -Djib.to.auth.password=${{ secrets.docker_secret }} --file pom.xml
