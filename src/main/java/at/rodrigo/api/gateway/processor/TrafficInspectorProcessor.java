@@ -31,6 +31,7 @@ public class TrafficInspectorProcessor implements Processor {
 
     @Override
     public void process(Exchange exchange) {
+        log.info(exchange.getIn().getBody().toString());
         throttlingManager.incrementThrottlingByRouteID(exchange.getIn().getBody().toString(), 1);
     }
 }
