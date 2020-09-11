@@ -50,7 +50,16 @@ public class RunningApiListener implements
 
     @Override
     public void entryUpdated( EntryEvent<String, RunningApi> event ) {
-        RunningApi runningApi = event.getMergingValue();
+        if(event.getMergingValue() != null) {
+            log.info("MERGING NOT NULL: {}", event.getMergingValue().isRemoved());
+        }
+        if(event.getOldValue() != null) {
+            log.info("OLD VALUE NOT NULL: {}", event.getOldValue().isRemoved());
+        }
+        if(event.getValue() != null) {
+            log.info("VALUE NOT NULL: {}", event.getValue().isRemoved());
+        }
+        RunningApi runningApi = event.getValue();
         if(runningApi.isRemoved() && runningApi.isDisabled()) {
             log.info( "API detected for suspension: {}", runningApi.getRouteId());
             camelUtils.suspendRoute(runningApi);
