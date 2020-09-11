@@ -96,8 +96,8 @@ public class ThrottlingInspector {
                             throttlingPolicy.setThrottlingExpiration(null);
                             throttlingPolicy.setTotalCalls(0);
                             throttlingManager.saveThrottlingPolicy(policyID, throttlingPolicy);
-                            runningApi.setSuspensionMessage(null);
-                            runningApi.setSuspensionType(null);
+                            //runningApi.setSuspensionMessage(null);
+                            //runningApi.setSuspensionType(null);
                             runningApi.setDisabled(false);
                             runningApi.setRemoved(false);
                             runningApiManager.saveRunningApi(runningApi);
