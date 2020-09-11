@@ -18,7 +18,6 @@ package at.rodrigo.api.gateway.cache;
 import at.rodrigo.api.gateway.entity.RunningApi;
 import at.rodrigo.api.gateway.utils.CamelUtils;
 import com.hazelcast.core.EntryEvent;
-import com.hazelcast.core.MapEvent;
 import com.hazelcast.map.listener.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,68 +25,24 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
-public class RunningApiListener implements
-        EntryAddedListener<String, RunningApi>,
-        EntryRemovedListener<String, RunningApi>,
-        EntryUpdatedListener<String, RunningApi>,
-        EntryEvictedListener<String, RunningApi>,
-        EntryLoadedListener<String, RunningApi>,
-        MapEvictedListener,
-        MapClearedListener {
+public class RunningApiListener implements EntryUpdatedListener<String, RunningApi> {
 
     @Autowired
-    CamelUtils camelUtils;
-
-    @Override
-    public void entryAdded( EntryEvent<String, RunningApi> event ) {
-        //log.info( "Entry Added:" + event );
-    }
-
-    @Override
-    public void entryRemoved( EntryEvent<String, RunningApi> event ) {
-        //log.info( "Entry Removed:" + event );
-    }
+    private CamelUtils camelUtils;
 
     @Override
     public void entryUpdated( EntryEvent<String, RunningApi> event ) {
-        if(event.getMergingValue() != null) {
-            log.info("MERGING NOT NULL: {}", event.getMergingValue().isRemoved());
-        }
-        if(event.getOldValue() != null) {
-            log.info("OLD VALUE NOT NULL: {}", event.getOldValue().isRemoved());
-        }
         if(event.getValue() != null) {
-            log.info("VALUE NOT NULL: {}", event.getValue().isRemoved());
+            RunningApi runningApi = event.getValue();
+            if(runningApi.isRemoved() && runningApi.isDisabled()) {
+                log.info( "API detected for suspension: {}", runningApi.getRouteId());
+                camelUtils.suspendRoute(runningApi);
+                camelUtils.addSuspendedRoute(runningApi);
+            } else {
+                log.info( "API detected for reactivation: {}", runningApi.getRouteId());
+                camelUtils.suspendRoute(runningApi);
+                camelUtils.addActiveRoute(runningApi);
+            }
         }
-        RunningApi runningApi = event.getValue();
-        if(runningApi.isRemoved() && runningApi.isDisabled()) {
-            log.info( "API detected for suspension: {}", runningApi.getRouteId());
-            camelUtils.suspendRoute(runningApi);
-            camelUtils.addSuspendedRoute(runningApi);
-        } else {
-            log.info( "API detected for reactivation: {}", runningApi.getRouteId());
-            camelUtils.suspendRoute(runningApi);
-            camelUtils.addActiveRoute(runningApi);
-        }
-    }
-
-    @Override
-    public void entryEvicted( EntryEvent<String, RunningApi> event ) {
-        //log.info( "Entry Evicted:" + event );
-    }
-
-    @Override
-    public void entryLoaded( EntryEvent<String, RunningApi> event ) {
-        //log.info( "Entry Loaded:" + event );
-    }
-
-    @Override
-    public void mapEvicted( MapEvent event ) {
-        //log.info( "Map Evicted:" + event );
-    }
-
-    @Override
-    public void mapCleared( MapEvent event ) {
-        //log.info( "Map Cleared:" + event );
     }
 }

@@ -22,7 +22,6 @@ import at.rodrigo.api.gateway.parser.SwaggerParser;
 import at.rodrigo.api.gateway.routes.SimpleRestRouteRepublisher;
 import at.rodrigo.api.gateway.routes.SwaggerRoutePublisher;
 import at.rodrigo.api.gateway.utils.CamelUtils;
-import at.rodrigo.api.gateway.utils.GrafanaUtils;
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.map.listener.EntryAddedListener;
 import com.hazelcast.map.listener.EntryRemovedListener;

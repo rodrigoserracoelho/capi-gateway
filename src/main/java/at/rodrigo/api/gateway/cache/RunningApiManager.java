@@ -37,9 +37,12 @@ public class RunningApiManager {
     @Autowired
     private HazelcastInstance hazelcastInstance;
 
+    @Autowired
+    private RunningApiListener runningApiListener;
+
     @PostConstruct
     public void addListener() {
-        getCachedApi().addEntryListener(new RunningApiListener(), true );
+        getCachedApi().addEntryListener(runningApiListener, true );
     }
 
     public void runApi(String routeId, Api api, String path, Verb verb) {
