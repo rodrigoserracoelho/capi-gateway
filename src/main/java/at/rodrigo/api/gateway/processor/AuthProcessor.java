@@ -78,7 +78,12 @@ public class AuthProcessor implements Processor {
                         jwtProcessor.setJWSKeySelector(keySelector);
                         JWTClaimsSet claimsSet = jwtProcessor.process(jwtToken, null);
 
+
                         Map<String, Object> claimSetMap = claimsSet.getJSONObjectClaim("realm_access");
+                        log.info("------------------->");
+                        claimSetMap.forEach((k, v) -> log.info((k + ":" + v)));
+
+
                         if(!claimSetMap.isEmpty() && claimSetMap.entrySet().stream().findFirst().isPresent()) {
                             JSONObject realmAccessClaimSet = (JSONObject) claimSetMap.entrySet().stream().findFirst().get().getValue();
                             JSONArray rolesObject = (JSONArray) realmAccessClaimSet.get("roles");
