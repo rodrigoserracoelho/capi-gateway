@@ -34,22 +34,22 @@ public class ErrorController {
     @Autowired
     private RunningApiManager runningApiManager;
 
-    @GetMapping(path="/capi-error")
+    @GetMapping(path=Constants.CAPI_INTERNAL_REST_ERROR_PATH)
     public ResponseEntity<CapiRestException> get(HttpServletRequest request) {
         return buildResponse(request);
     }
 
-    @PostMapping(path="/capi-error")
+    @PostMapping(path=Constants.CAPI_INTERNAL_REST_ERROR_PATH)
     public ResponseEntity<CapiRestException> post(HttpServletRequest request) {
         return buildResponse(request);
     }
 
-    @PutMapping(path="/capi-error")
+    @PutMapping(path=Constants.CAPI_INTERNAL_REST_ERROR_PATH)
     public ResponseEntity<CapiRestException> put(HttpServletRequest request) {
         return buildResponse(request);
     }
 
-    @DeleteMapping(path="/capi-error")
+    @DeleteMapping(path=Constants.CAPI_INTERNAL_REST_ERROR_PATH)
     public ResponseEntity<CapiRestException> delete(HttpServletRequest request) {
         return buildResponse(request);
     }
