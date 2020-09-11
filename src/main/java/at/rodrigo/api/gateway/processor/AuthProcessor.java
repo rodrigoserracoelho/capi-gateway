@@ -41,6 +41,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.text.ParseException;
+import java.util.Iterator;
+import java.util.Map;
 
 @Component
 @Slf4j
@@ -75,14 +77,22 @@ public class AuthProcessor implements Processor {
                         JWSKeySelector<SecurityContext> keySelector = new JWSVerificationKeySelector<>(expectedJWSAlg, keySource);
                         jwtProcessor.setJWSKeySelector(keySelector);
                         JWTClaimsSet claimsSet = jwtProcessor.process(jwtToken, null);
-                        JSONObject realmAccessClaimSet = claimsSet.getJSONObjectClaim("realm_access");
-                        JSONArray rolesObject = (JSONArray) realmAccessClaimSet.get("roles");
-                        if(rolesObject.contains(apiClientID)) {
-                            validCall = true;
-                        }
-                        if(!validCall) {
+
+                        Map<String, Object> claimSetMap = claimsSet.getJSONObjectClaim("realm_access");
+                        if(!claimSetMap.isEmpty() && claimSetMap.entrySet().stream().findFirst().isPresent()) {
+                            JSONObject realmAccessClaimSet = (JSONObject) claimSetMap.entrySet().stream().findFirst().get().getValue();
+                            JSONArray rolesObject = (JSONArray) realmAccessClaimSet.get("roles");
+                            if(rolesObject.contains(apiClientID)) {
+                                validCall = true;
+                            }
+                            if(!validCall) {
+                                exchange.getIn().setHeader(Constants.REASON_CODE_HEADER, HttpStatus.FORBIDDEN.value());
+                                exchange.getIn().setHeader(Constants.REASON_MESSAGE_HEADER, "You are not subscribed to this API");
+                                exchange.setException(new NoSubscriptionException());
+                            }
+                        } else {
                             exchange.getIn().setHeader(Constants.REASON_CODE_HEADER, HttpStatus.FORBIDDEN.value());
-                            exchange.getIn().setHeader(Constants.REASON_MESSAGE_HEADER, "You are not subscribed to this API");
+                            exchange.getIn().setHeader(Constants.REASON_MESSAGE_HEADER, "Problem reading realm access");
                             exchange.setException(new NoSubscriptionException());
                         }
                     } else {
