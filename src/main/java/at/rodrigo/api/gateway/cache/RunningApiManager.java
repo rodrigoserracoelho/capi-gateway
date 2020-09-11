@@ -68,6 +68,10 @@ public class RunningApiManager {
         runningApi.setConnectTimeout(api.getConnectTimeout());
         runningApi.setSocketTimeout(api.getSocketTimeout());
 
+        if(api.getThrottlingPolicy() != null) {
+            runningApi.setTrafficInspectorEnabled(true);
+        }
+
         if(api.isBlockIfInError()) {
             if(api.isUnblockAfter()) {
                 runningApi.setUnblockAfterMinutes(api.getUnblockAfterMinutes());

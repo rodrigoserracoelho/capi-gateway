@@ -104,6 +104,5 @@ public class SimpleRestRoutePublisher extends RouteBuilder {
             }
         }
         throttlingManager.applyThrottling(api);
-        //grafanaUtils.addToGrafana(api);
     }
 }

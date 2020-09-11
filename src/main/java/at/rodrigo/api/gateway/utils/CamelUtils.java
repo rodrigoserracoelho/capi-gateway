@@ -129,13 +129,20 @@ public class CamelUtils {
             routeDefinition.setHeader(Constants.CAPI_CONTEXT_HEADER, constant(api.getContext()));
         }
 
-        if(trafficInspectorEnabled) {
+        /*if(trafficInspectorEnabled) {
             routeDefinition
                     .setBody(constant(routeID))
                     .to("kafka:" + trafficInspectorKafkaTopic + "?brokers=" + trafficInspectorKafkaBroker);
-        }
+        }*/
 
         if(api.isSecured()) {
+            if(api.getThrottlingPolicy() != null) {
+                if(trafficInspectorEnabled) {
+                    routeDefinition
+                            .setBody(constant(routeID))
+                            .to("kafka:" + trafficInspectorKafkaTopic + "?brokers=" + trafficInspectorKafkaBroker);
+                }
+            }
             routeDefinition
                     .setHeader(Constants.BLOCK_IF_IN_ERROR_HEADER, constant(api.isBlockIfInError()))
                     .setHeader(Constants.API_CLIENT_ID_HEADER, constant(api.getClientID()))
@@ -173,13 +180,20 @@ public class CamelUtils {
             routeDefinition.setHeader(Constants.CAPI_CONTEXT_HEADER, constant(runningApi.getContext()));
         }
 
-        if(trafficInspectorEnabled) {
+        /*if(trafficInspectorEnabled) {
             routeDefinition
                     .setBody(constant(routeID))
                     .to("kafka:" + trafficInspectorKafkaTopic + "?brokers=" + trafficInspectorKafkaBroker);
-        }
+        }*/
 
         if(runningApi.isSecured()) {
+            if(runningApi.isTrafficInspectorEnabled()) {
+                if(trafficInspectorEnabled) {
+                    routeDefinition
+                            .setBody(constant(routeID))
+                            .to("kafka:" + trafficInspectorKafkaTopic + "?brokers=" + trafficInspectorKafkaBroker);
+                }
+            }
             routeDefinition
                     .setHeader(Constants.BLOCK_IF_IN_ERROR_HEADER, constant(runningApi.isBlockIfInError()))
                     .setHeader(Constants.API_CLIENT_ID_HEADER, constant(runningApi.getClientID()))
