@@ -25,12 +25,11 @@ import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.JWSKeySelector;
 import com.nimbusds.jose.proc.JWSVerificationKeySelector;
 import com.nimbusds.jose.proc.SecurityContext;
+import com.nimbusds.jose.shaded.json.JSONArray;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import lombok.extern.slf4j.Slf4j;
-import net.minidev.json.JSONArray;
-import net.minidev.json.JSONObject;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +40,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.text.ParseException;
-import java.util.Iterator;
 import java.util.Map;
 
 @Component
@@ -78,16 +76,9 @@ public class AuthProcessor implements Processor {
                         jwtProcessor.setJWSKeySelector(keySelector);
                         JWTClaimsSet claimsSet = jwtProcessor.process(jwtToken, null);
 
-
                         Map<String, Object> claimSetMap = claimsSet.getJSONObjectClaim("realm_access");
-                        log.info("------------------->");
-                        //claimSetMap.forEach((k, v) -> log.info((k + ":" + v)));
-
-
+                        claimSetMap.forEach((k, v) -> log.debug((k + ":" + v)));
                         if(!claimSetMap.isEmpty() && claimSetMap.entrySet().stream().findFirst().isPresent()) {
-                            //JSONObject realmAccessClaimSet = (JSONObject) claimSetMap.entrySet().stream().findFirst().get().getValue();
-                            //log.info(realmAccessClaimSet.toJSONString());
-                            //JSONArray rolesObject = (JSONArray) realmAccessClaimSet.get("roles");
                             JSONArray rolesObject = (JSONArray) claimSetMap.entrySet().stream().findFirst().get().getValue();
                             if(rolesObject.contains(apiClientID)) {
                                 validCall = true;
