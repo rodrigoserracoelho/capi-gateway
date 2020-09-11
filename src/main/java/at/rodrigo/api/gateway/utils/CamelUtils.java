@@ -174,7 +174,6 @@ public class CamelUtils {
         }
 
         if(trafficInspectorEnabled) {
-            log.info("Enabling Traffic Inspector --------------------------------------");
             routeDefinition
                     .setBody(constant(routeID))
                     .to("kafka:" + trafficInspectorKafkaTopic + "?brokers=" + trafficInspectorKafkaBroker);
