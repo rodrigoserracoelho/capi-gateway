@@ -81,12 +81,14 @@ public class AuthProcessor implements Processor {
 
                         Map<String, Object> claimSetMap = claimsSet.getJSONObjectClaim("realm_access");
                         log.info("------------------->");
-                        claimSetMap.forEach((k, v) -> log.info((k + ":" + v)));
+                        //claimSetMap.forEach((k, v) -> log.info((k + ":" + v)));
 
 
                         if(!claimSetMap.isEmpty() && claimSetMap.entrySet().stream().findFirst().isPresent()) {
-                            JSONObject realmAccessClaimSet = (JSONObject) claimSetMap.entrySet().stream().findFirst().get().getValue();
-                            JSONArray rolesObject = (JSONArray) realmAccessClaimSet.get("roles");
+                            //JSONObject realmAccessClaimSet = (JSONObject) claimSetMap.entrySet().stream().findFirst().get().getValue();
+                            //log.info(realmAccessClaimSet.toJSONString());
+                            //JSONArray rolesObject = (JSONArray) realmAccessClaimSet.get("roles");
+                            JSONArray rolesObject = (JSONArray) claimSetMap.entrySet().stream().findFirst().get().getValue();
                             if(rolesObject.contains(apiClientID)) {
                                 validCall = true;
                             }
