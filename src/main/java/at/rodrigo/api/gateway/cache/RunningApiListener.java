@@ -15,42 +15,60 @@
 
 package at.rodrigo.api.gateway.cache;
 
+import at.rodrigo.api.gateway.entity.RunningApi;
+import at.rodrigo.api.gateway.utils.CamelUtils;
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.MapEvent;
 import com.hazelcast.map.listener.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
 @Slf4j
 public class RunningApiListener implements
-        EntryAddedListener<String, String>,
-        EntryRemovedListener<String, String>,
-        EntryUpdatedListener<String, String>,
-        EntryEvictedListener<String, String>,
-        EntryLoadedListener<String,String>,
+        EntryAddedListener<String, RunningApi>,
+        EntryRemovedListener<String, RunningApi>,
+        EntryUpdatedListener<String, RunningApi>,
+        EntryEvictedListener<String, RunningApi>,
+        EntryLoadedListener<String, RunningApi>,
         MapEvictedListener,
         MapClearedListener {
+
+    @Autowired
+    CamelUtils camelUtils;
+
     @Override
-    public void entryAdded( EntryEvent<String, String> event ) {
+    public void entryAdded( EntryEvent<String, RunningApi> event ) {
         //log.info( "Entry Added:" + event );
     }
 
     @Override
-    public void entryRemoved( EntryEvent<String, String> event ) {
+    public void entryRemoved( EntryEvent<String, RunningApi> event ) {
         //log.info( "Entry Removed:" + event );
     }
 
     @Override
-    public void entryUpdated( EntryEvent<String, String> event ) {
-        //log.info( "Entry Updated:" + event );
+    public void entryUpdated( EntryEvent<String, RunningApi> event ) {
+        RunningApi runningApi = event.getMergingValue();
+        if(runningApi.isRemoved() && runningApi.isDisabled()) {
+            log.info( "API detected for suspension: {}", runningApi.getRouteId());
+            camelUtils.suspendRoute(runningApi);
+            camelUtils.addSuspendedRoute(runningApi);
+        } else {
+            log.info( "API detected for reactivation: {}", runningApi.getRouteId());
+            camelUtils.suspendRoute(runningApi);
+            camelUtils.addActiveRoute(runningApi);
+        }
     }
 
     @Override
-    public void entryEvicted( EntryEvent<String, String> event ) {
+    public void entryEvicted( EntryEvent<String, RunningApi> event ) {
         //log.info( "Entry Evicted:" + event );
     }
 
     @Override
-    public void entryLoaded( EntryEvent<String, String> event ) {
+    public void entryLoaded( EntryEvent<String, RunningApi> event ) {
         //log.info( "Entry Loaded:" + event );
     }
 

@@ -42,8 +42,8 @@ public class ThrottlingInspector {
     @Autowired
     ThrottlingManager throttlingManager;
 
-    @Autowired
-    CamelUtils camelUtils;
+    //@Autowired
+    //CamelUtils camelUtils;
 
     @Scheduled(fixedRateString = "${api.gateway.api.throttling.inspector.period}")
     public void count() {
@@ -80,8 +80,8 @@ public class ThrottlingInspector {
                                 runningApi.setSuspensionType(SuspensionType.THROTTLING);
                                 runningApi.setSuspensionMessage("Your route was suspended because its configured to accept: " + throttlingPolicy.getMaxCallsAllowed() + " calls during a period of " + throttlingPolicy.getPeriodForMaxCalls());
                                 runningApiManager.saveRunningApi(runningApi);
-                                camelUtils.suspendRoute(runningApi);
-                                camelUtils.addSuspendedRoute(runningApi);
+                                //camelUtils.suspendRoute(runningApi);
+                                //camelUtils.addSuspendedRoute(runningApi);
                             } else {
                                 if(throttlingPolicy.getThrottlingExpiration() != null && throttlingPolicy.getThrottlingExpiration().before(executionTime)) {
                                     throttlingPolicy.setTotalCalls(0);
@@ -102,8 +102,8 @@ public class ThrottlingInspector {
                             runningApi.setRemoved(false);
                             runningApiManager.saveRunningApi(runningApi);
                             //Remove suspended route
-                            camelUtils.suspendRoute(runningApi);
-                            camelUtils.addActiveRoute(runningApi);
+                            //camelUtils.suspendRoute(runningApi);
+                            //camelUtils.addActiveRoute(runningApi);
                         }
                     }
 
