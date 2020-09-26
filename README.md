@@ -1,5 +1,6 @@
 ![CAPI-CICD](https://github.com/rodrigoserracoelho/capi-gateway/workflows/CAPI-CICD/badge.svg?branch=master)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+![Docker Image Version (latest by date)](https://img.shields.io/docker/v/surisoft/capi-gateway)
 
 # CAPI Gateway
 ###### Light API Gateway implemented with Apache Camel
