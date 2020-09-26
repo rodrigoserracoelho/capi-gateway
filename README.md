@@ -89,6 +89,70 @@
   
 For Docker, please visit: https://github.com/rodrigoserracoelho/capi-docker
 
+#### The default Keycloak contains a CAPI realm with the following defaults:
+ * Admin user: 
+   * User: admin
+   * Password: admin
+ * Default client to get your first token and deploy an API: 
+   * Client ID: Manager
+   * Credentials: manager:988404d3-38bd-4246-a923-8b772c213b88
+ * Default client to login with a single page application (OpenID Connect - Implicit flow)
+   * Client ID: rest
+ * User to try the implicit flow:
+   * User: test
+   * Password: password    
+
+Get your first token:
+````
+curl --location --request POST 'https://localhost:8443/auth/realms/capi/protocol/openid-connect/token' \
+--header 'Authorization: Basic bWFuYWdlcjo5ODg0MDRkMy0zOGJkLTQyNDYtYTkyMy04Yjc3MmMyMTNiODg=' \
+--header 'Content-Type: application/x-www-form-urlencoded' \
+--data-urlencode 'grant_type=client_credentials'
+````
+Publish your first API:
+````
+curl --location --request POST 'https://localhost:8080/route' \
+--header 'Authorization: Bearer [your first token]' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "endpoints": [
+        "your.endpoint.eu:8080"
+    ],
+    "endpointType": "HTTP",
+    "connectTimeout": 0,
+    "socketTimeout": 0,
+    "name": "first-api",
+    "secured": true,
+    "context": "first-api",
+    "swagger": false,
+    "swaggerEndpoint": "http://your.endpoint.eu:8080/v2/api-docs",
+    "blockIfInError": false,
+    "maxAllowedFailedCalls": 0,
+    "zipkinTraceIdVisible": false,
+    "internalExceptionMessageVisible": false,
+    "internalExceptionVisible": false,
+    "returnAPIError": false,
+    "unblockAfter": false,
+    "unblockAfterMinutes": 0,
+    "corsEnabled": true,
+    "credentialsAllowed": true,
+    "allowedOrigins": [
+        "http://localhost:4300",
+        "http://localhost:4400",
+        "http://localhost:4200"
+    ],
+    "throttlingPolicy": {
+        "maxCallsAllowed": 10,
+        "periodForMaxCalls": 60000,
+        "applyPerPath": true
+    }
+}'
+````
+Shortly your API will be available here:
+````
+curl --location --request GET 'https://localhost:8380/gateway/first-api/some/context'
+````
+   
 ## What we use:
 * Apache Camel
 * Spring Boot
