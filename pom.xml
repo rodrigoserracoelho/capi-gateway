@@ -22,7 +22,7 @@
   <groupId>at.rodrigo.api.gateway</groupId>
   <artifactId>capi-gateway</artifactId>
   <packaging>jar</packaging>
-  <version>1.4.2</version>
+  <version>1.4.3</version>
 
   <name>CAPI - API Gateway</name>
 
@@ -133,6 +133,16 @@
       <artifactId>camel-kafka</artifactId>
       <version>${org.apache.camel.springboot-version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-management</artifactId>
+      <version>${org.apache.camel.springboot-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hawt</groupId>
+      <artifactId>hawtio-springboot</artifactId>
+      <version>2.10.2</version>
+    </dependency>
 
     <dependency>
       <groupId>org.apache.camel</groupId>
@@ -157,6 +167,11 @@
       <groupId>org.apache.camel</groupId>
       <artifactId>camel-micrometer</artifactId>
       <version>${org.apache.camel.springboot-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-registry-jmx</artifactId>
+      <version>${io.micrometer-version}</version>
     </dependency>
 
     <!-- Test -->

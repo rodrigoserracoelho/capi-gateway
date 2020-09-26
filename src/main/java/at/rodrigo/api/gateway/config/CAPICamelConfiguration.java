@@ -23,11 +23,16 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.RSAKey;
+import io.micrometer.core.instrument.Clock;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
+import io.micrometer.core.instrument.util.HierarchicalNameMapper;
+import io.micrometer.jmx.JmxMeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelContext;
+import org.apache.camel.component.micrometer.CamelJmxConfig;
 import org.apache.camel.component.micrometer.DistributionStatisticConfigFilter;
+import org.apache.camel.component.micrometer.eventnotifier.MicrometerExchangeEventNotifier;
 import org.apache.camel.component.micrometer.messagehistory.MicrometerMessageHistoryFactory;
 import org.apache.camel.component.micrometer.routepolicy.MicrometerRoutePolicyFactory;
 import org.apache.camel.zipkin.ZipkinTracer;
@@ -131,6 +136,8 @@ public class CAPICamelConfiguration {
     void contextConfig() {
         camelContext.addRoutePolicyFactory(new MicrometerRoutePolicyFactory());
         camelContext.setMessageHistoryFactory(new MicrometerMessageHistoryFactory());
+        camelContext.getManagementStrategy().addEventNotifier(new MicrometerExchangeEventNotifier());
+
         ZipkinTracer zipkinTracer = zipkinTracer();
         zipkinTracer.init(camelContext);
 
@@ -164,6 +171,11 @@ public class CAPICamelConfiguration {
         compositeMeterRegistry.config().commonTags(Tags.of("application", Constants.APPLICATION_NAME))
         .meterFilter(timerMeterFilter)
         .meterFilter(summaryMeterFilter).namingConvention().tagKey(Constants.APPLICATION_NAME);
+
+        compositeMeterRegistry.add(new JmxMeterRegistry(
+                CamelJmxConfig.DEFAULT,
+                Clock.SYSTEM,
+                HierarchicalNameMapper.DEFAULT));
         return compositeMeterRegistry;
     }
 
