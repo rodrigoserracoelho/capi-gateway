@@ -5,6 +5,8 @@
 # CAPI Gateway [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=CAPI%20Apache%20Camel%20API%20Gateway&url=https://github.com/rodrigoserracoelho/capi-gateway)
 ###### Light API Gateway implemented with Apache Camel
 
+Apache Con 2020 Presentation: https://www.youtube.com/watch?v=sEKCI8IBCfc
+
 ![CAPI-Gateway-Diagram](https://surisoft.io/assets/images/CAPI-Gateway-white.png)
 
 ## Supports:
