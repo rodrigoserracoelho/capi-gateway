@@ -20,8 +20,7 @@ import at.rodrigo.api.gateway.cache.ThrottlingManager;
 import at.rodrigo.api.gateway.entity.RunningApi;
 import at.rodrigo.api.gateway.entity.SuspensionType;
 import at.rodrigo.api.gateway.entity.ThrottlingPolicy;
-import at.rodrigo.api.gateway.utils.CamelUtils;
-import com.hazelcast.core.IMap;
+import com.hazelcast.map.IMap;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -41,9 +40,6 @@ public class ThrottlingInspector {
 
     @Autowired
     ThrottlingManager throttlingManager;
-
-    //@Autowired
-    //CamelUtils camelUtils;
 
     @Scheduled(fixedRateString = "${api.gateway.api.throttling.inspector.period}")
     public void count() {
