@@ -16,7 +16,7 @@
 package at.rodrigo.api.gateway.cache;
 
 import com.hazelcast.config.*;
-import com.hazelcast.spi.properties.GroupProperty;
+import com.hazelcast.spi.properties.ClusterProperty;
 import com.hazelcast.zookeeper.ZookeeperDiscoveryProperties;
 import com.hazelcast.zookeeper.ZookeeperDiscoveryStrategyFactory;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +30,7 @@ public class CAPICacheConfig extends Config {
 
         if(zookeeperDiscoveryEnabled) {
             getNetworkConfig().getJoin().getMulticastConfig().setEnabled(false);
-            setProperty(GroupProperty.DISCOVERY_SPI_ENABLED.getName(), "true");
+            setProperty(ClusterProperty.DISCOVERY_SPI_ENABLED.getName(), "true");
             setProperty("connection-timeout-seconds", "30");
 
             DiscoveryStrategyConfig discoveryStrategyConfig = new DiscoveryStrategyConfig(new ZookeeperDiscoveryStrategyFactory());
@@ -40,16 +40,15 @@ public class CAPICacheConfig extends Config {
             getNetworkConfig().getJoin().getDiscoveryConfig().addDiscoveryStrategyConfig(discoveryStrategyConfig);
         }
 
-        GroupConfig groupConfig = new GroupConfig();
-        groupConfig.setName(environment);
-
+        MapConfig mapConfig = new MapConfig()
+                .setName("running-apis-configuration")
+                .setTimeToLiveSeconds(-1);
+        mapConfig.getEvictionConfig()
+                .setMaxSizePolicy(MaxSizePolicy.FREE_HEAP_SIZE)
+                .setSize(20000)
+                .setEvictionPolicy(EvictionPolicy.LRU);
         setInstanceName("running-apis-instance")
-                .setGroupConfig(groupConfig)
-                .addMapConfig(
-                        new MapConfig()
-                                .setName("running-apis-configuration")
-                                .setMaxSizeConfig(new MaxSizeConfig(200, MaxSizeConfig.MaxSizePolicy.FREE_HEAP_SIZE))
-                                .setEvictionPolicy(EvictionPolicy.LRU)
-                                .setTimeToLiveSeconds(-1));
+                .setClusterName(environment)
+                .addMapConfig(mapConfig);
     }
 }

@@ -17,7 +17,7 @@ package at.rodrigo.api.gateway.cache;
 
 import at.rodrigo.api.gateway.entity.Api;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.IMap;
+import com.hazelcast.map.IMap;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
