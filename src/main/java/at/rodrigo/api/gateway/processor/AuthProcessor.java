@@ -21,13 +21,10 @@ import at.rodrigo.api.gateway.utils.Constants;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
-import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.JWSKeySelector;
 import com.nimbusds.jose.proc.JWSVerificationKeySelector;
 import com.nimbusds.jose.proc.SecurityContext;
-//import com.nimbusds.jose.shaded.json.JSONArray;
 import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONArray;
@@ -67,11 +64,11 @@ public class AuthProcessor implements Processor {
                 exchange.getIn().removeHeader(Constants.BLOCK_IF_IN_ERROR_HEADER);
                 exchange.getIn().removeHeader(Constants.API_CLIENT_ID_HEADER);
                 if(apiClientID != null && jwtToken != null) {
-                    ConfigurableJWTProcessor jwtProcessor = new DefaultJWTProcessor();
+                    DefaultJWTProcessor jwtProcessor = new DefaultJWTProcessor();
                     ResponseEntity<String> publicKeyEndpoint = restTemplate.getForEntity(capiAuthorizationKeysEndpoint, String.class);
                     if(publicKeyEndpoint.getStatusCode().is2xxSuccessful()) {
                         JWKSet jwkSet = JWKSet.parse(publicKeyEndpoint.getBody());
-                        JWKSource keySource = new ImmutableJWKSet(jwkSet);
+                        ImmutableJWKSet keySource = new ImmutableJWKSet(jwkSet);
                         JWSAlgorithm expectedJWSAlg = JWSAlgorithm.RS256;
                         JWSKeySelector<SecurityContext> keySelector = new JWSVerificationKeySelector<>(expectedJWSAlg, keySource);
                         jwtProcessor.setJWSKeySelector(keySelector);
@@ -80,13 +77,19 @@ public class AuthProcessor implements Processor {
                         Map<String, Object> claimSetMap = claimsSet.getJSONObjectClaim("realm_access");
                         claimSetMap.forEach((k, v) -> log.debug((k + ":" + v)));
                         if(!claimSetMap.isEmpty() && claimSetMap.entrySet().stream().findFirst().isPresent()) {
-                            JSONArray rolesObject = (JSONArray) claimSetMap.entrySet().stream().findFirst().get().getValue();
-                            if(rolesObject.contains(apiClientID)) {
-                                validCall = true;
-                            }
-                            if(!validCall) {
+                            if(claimSetMap.entrySet().stream().findFirst().isPresent()) {
+                                JSONArray rolesObject = (JSONArray) claimSetMap.entrySet().stream().findFirst().get().getValue();
+                                if(rolesObject.contains(apiClientID)) {
+                                    validCall = true;
+                                }
+                                if(!validCall) {
+                                    exchange.getIn().setHeader(Constants.REASON_CODE_HEADER, HttpStatus.FORBIDDEN.value());
+                                    exchange.getIn().setHeader(Constants.REASON_MESSAGE_HEADER, "You are not subscribed to this API");
+                                    exchange.setException(new NoSubscriptionException());
+                                }
+                            } else {
                                 exchange.getIn().setHeader(Constants.REASON_CODE_HEADER, HttpStatus.FORBIDDEN.value());
-                                exchange.getIn().setHeader(Constants.REASON_MESSAGE_HEADER, "You are not subscribed to this API");
+                                exchange.getIn().setHeader(Constants.REASON_MESSAGE_HEADER, "Problem reading realm access");
                                 exchange.setException(new NoSubscriptionException());
                             }
                         } else {
