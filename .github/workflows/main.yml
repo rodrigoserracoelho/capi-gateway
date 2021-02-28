@@ -14,8 +14,8 @@ jobs:
         java-version: 14
     - uses: actions/checkout@v2
     - name: maven-settings-xml-action
-        uses: whelk-io/maven-settings-xml-action@v14
-        with:
-          servers: '[{ "id": "github", "username": "${{ secrets.MAVEN_REPO_USER }}", "password": "${{ secrets.MAVEN_REPO }}" }]'
+      uses: whelk-io/maven-settings-xml-action@v14
+      with:
+        servers: '[{ "id": "github", "username": "${{ secrets.MAVEN_REPO_USER }}", "password": "${{ secrets.MAVEN_REPO }}" }]'
     - name: Build with Maven
       run: mvn compile -DskipTests jib:build -Djib.to.auth.username=surisoft -Djib.to.auth.password=${{ secrets.docker_secret }} --file pom.xml
