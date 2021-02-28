@@ -259,13 +259,7 @@
       <artifactId>curator-x-discovery</artifactId>
       <version>${org.apache.curator-version}</version>
     </dependency>
-    <!--dependency>
-      <groupId>at.rodrigo.api.gateway</groupId>
-      <artifactId>api-gateway-grafana</artifactId>
-      <version>${api-gateway-grafana.version}</version>
-    </dependency-->
   </dependencies>
-
   <build>
     <plugins>
       <plugin>
@@ -353,13 +347,12 @@
         </dependencies>
       </plugin>
     </plugins>
-
   </build>
   <repositories>
     <repository>
-      <id>capi-gateway-entity</id>
+      <id>github</id>
       <name>GitHub CAPI Gateway Entity</name>
-      <url>https://github.com/rodrigoserracoelho/capi-gateway-entity/packages</url>
+      <url>https://maven.pkg.github.com/rodrigoserracoelho/capi-gateway-entity</url>
     </repository>
   </repositories>
 </project>
