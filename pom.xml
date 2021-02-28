@@ -47,13 +47,12 @@
     <com.nimbus-version>8.26</com.nimbus-version>
     <org.json-version>20201115</org.json-version>
     <org.projectlombok-version>1.18.16</org.projectlombok-version>
-    <com.hazelcast-version>4.0.2</com.hazelcast-version>
     <io.micrometer-version>1.6.1</io.micrometer-version>
     <io.zipkin.reporter2-version>2.16.0</io.zipkin.reporter2-version>
     <api-gateway-entity.version>1.4.0</api-gateway-entity.version>
     <io.hawt.version>2.12.0</io.hawt.version>
     <org.apache.curator-version>5.1.0</org.apache.curator-version>
-    <hazelcast-zookeeper-version>3.6.3</hazelcast-zookeeper-version>
+    <hazelcast-zookeeper-version>4.0.2</hazelcast-zookeeper-version>
     <maven.compiler.plugin-version>3.8.1</maven.compiler.plugin-version>
     <openjdk-version>14</openjdk-version>
   </properties>
