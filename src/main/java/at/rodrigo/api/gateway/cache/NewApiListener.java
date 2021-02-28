@@ -17,7 +17,8 @@ package at.rodrigo.api.gateway.cache;
 
 import at.rodrigo.api.gateway.entity.Api;
 import at.rodrigo.api.gateway.entity.RunningApi;
-import at.rodrigo.api.gateway.grafana.http.GrafanaDashboardBuilder;
+//import at.rodrigo.api.gateway.grafana.http.GrafanaDashboardBuilder;
+import at.rodrigo.api.gateway.grafana.GrafanaDashboardBuilder;
 import at.rodrigo.api.gateway.parser.SwaggerParser;
 import at.rodrigo.api.gateway.routes.SimpleRestRouteRepublisher;
 import at.rodrigo.api.gateway.routes.SwaggerRoutePublisher;

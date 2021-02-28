@@ -16,7 +16,7 @@
 package at.rodrigo.api.gateway.config;
 
 import at.rodrigo.api.gateway.cache.CAPICacheConfig;
-import at.rodrigo.api.gateway.grafana.http.GrafanaDashboardBuilder;
+import at.rodrigo.api.gateway.grafana.GrafanaDashboardBuilder;
 import at.rodrigo.api.gateway.utils.Constants;
 import com.hazelcast.config.Config;
 import com.nimbusds.jose.JWSAlgorithm;

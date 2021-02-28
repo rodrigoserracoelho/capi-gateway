@@ -22,7 +22,7 @@
   <groupId>at.rodrigo.api.gateway</groupId>
   <artifactId>capi-gateway</artifactId>
   <packaging>jar</packaging>
-  <version>1.4.4</version>
+  <version>1.4.5</version>
 
   <name>CAPI - API Gateway</name>
 
@@ -47,14 +47,13 @@
     <com.nimbus-version>8.26</com.nimbus-version>
     <org.json-version>20201115</org.json-version>
     <org.projectlombok-version>1.18.16</org.projectlombok-version>
-    <com.hazelcast-version>4.1</com.hazelcast-version>
+    <com.hazelcast-version>4.0.3</com.hazelcast-version>
     <io.micrometer-version>1.6.1</io.micrometer-version>
     <io.zipkin.reporter2-version>2.16.0</io.zipkin.reporter2-version>
     <api-gateway-entity.version>1.4.0</api-gateway-entity.version>
-    <api-gateway-grafana.version>1.0</api-gateway-grafana.version>
     <io.hawt.version>2.12.0</io.hawt.version>
     <org.apache.curator-version>5.1.0</org.apache.curator-version>
-    <hazelcast-zookeeper-version>4.0.1</hazelcast-zookeeper-version>
+    <hazelcast-zookeeper-version>3.6.3</hazelcast-zookeeper-version>
     <maven.compiler.plugin-version>3.8.1</maven.compiler.plugin-version>
     <openjdk-version>14</openjdk-version>
   </properties>
@@ -260,11 +259,11 @@
       <artifactId>curator-x-discovery</artifactId>
       <version>${org.apache.curator-version}</version>
     </dependency>
-    <dependency>
+    <!--dependency>
       <groupId>at.rodrigo.api.gateway</groupId>
       <artifactId>api-gateway-grafana</artifactId>
       <version>${api-gateway-grafana.version}</version>
-    </dependency>
+    </dependency-->
   </dependencies>
 
   <build>
@@ -354,5 +353,13 @@
         </dependencies>
       </plugin>
     </plugins>
+
   </build>
+  <repositories>
+    <repository>
+      <id>capi-gateway-entity</id>
+      <name>GitHub CAPI Gateway Entity</name>
+      <url>https://github.com/rodrigoserracoelho/capi-gateway-entity/packages</url>
+    </repository>
+  </repositories>
 </project>
