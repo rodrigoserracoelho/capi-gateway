@@ -12,19 +12,13 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
-
-package at.rodrigo.api.gateway.exception;
+package at.rodrigo.api.gateway.schema;
 
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @Data
-public class CapiRestException {
-    private String routeID;
-    private String errorMessage;
-    private int errorCode;
-    private String exception;
-    private String internalExceptionMessage;
-    private String zipkinTraceID;
+public class AliasInfo {
+    private String alias;
+    private String issuerDN;
+    private String subjectDN;
 }

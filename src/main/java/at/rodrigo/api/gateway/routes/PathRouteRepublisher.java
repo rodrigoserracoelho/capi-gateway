@@ -15,7 +15,7 @@
 
 package at.rodrigo.api.gateway.routes;
 
-import at.rodrigo.api.gateway.entity.RunningApi;
+import at.rodrigo.api.gateway.schema.RunningApi;
 import at.rodrigo.api.gateway.utils.CamelUtils;
 import at.rodrigo.api.gateway.utils.Constants;
 import org.apache.camel.CamelContext;
@@ -41,13 +41,11 @@ public class PathRouteRepublisher extends RouteBuilder {
     @Override
     public void configure() {
         log.info("Starting to republish a previously blocked route");
-
         try {
             addRoute(runningApi);
         } catch(Exception e) {
             log.error(e.getMessage(), e);
         }
-
     }
 
     private void addRoute(RunningApi runningApi) throws  Exception {

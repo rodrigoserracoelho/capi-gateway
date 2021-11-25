@@ -15,13 +15,12 @@
 
 package at.rodrigo.api.gateway.cache;
 
-import at.rodrigo.api.gateway.entity.Api;
-import at.rodrigo.api.gateway.entity.RunningApi;
-//import at.rodrigo.api.gateway.grafana.http.GrafanaDashboardBuilder;
 import at.rodrigo.api.gateway.grafana.GrafanaDashboardBuilder;
 import at.rodrigo.api.gateway.parser.SwaggerParser;
 import at.rodrigo.api.gateway.routes.SimpleRestRouteRepublisher;
 import at.rodrigo.api.gateway.routes.SwaggerRoutePublisher;
+import at.rodrigo.api.gateway.schema.Api;
+import at.rodrigo.api.gateway.schema.RunningApi;
 import at.rodrigo.api.gateway.utils.CamelUtils;
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.map.listener.EntryAddedListener;

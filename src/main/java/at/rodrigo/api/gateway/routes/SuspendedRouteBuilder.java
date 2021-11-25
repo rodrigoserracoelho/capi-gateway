@@ -15,7 +15,7 @@
 
 package at.rodrigo.api.gateway.routes;
 
-import at.rodrigo.api.gateway.entity.RunningApi;
+import at.rodrigo.api.gateway.schema.RunningApi;
 import at.rodrigo.api.gateway.utils.CamelUtils;
 import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;

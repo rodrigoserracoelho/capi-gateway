@@ -12,19 +12,23 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
+package at.rodrigo.api.gateway.schema;
 
-package at.rodrigo.api.gateway.exception;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
+
 @Data
-public class CapiRestException {
-    private String routeID;
-    private String errorMessage;
-    private int errorCode;
-    private String exception;
-    private String internalExceptionMessage;
-    private String zipkinTraceID;
+public class ThrottlingPolicy implements Serializable {
+    private int maxCallsAllowed;
+    private int periodForMaxCalls;
+    private int startCountingAt;
+    private int totalCalls;
+    private Date throttlingExpiration;
+    private boolean applyPerPath;
+    @JsonIgnore
+    private List<String> routeID;
 }

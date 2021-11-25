@@ -15,10 +15,9 @@
 
 package at.rodrigo.api.gateway.routes;
 
-
 import at.rodrigo.api.gateway.cache.CacheConstants;
-import at.rodrigo.api.gateway.entity.Api;
 import at.rodrigo.api.gateway.repository.ApiRepository;
+import at.rodrigo.api.gateway.schema.Api;
 import com.hazelcast.core.HazelcastInstance;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;

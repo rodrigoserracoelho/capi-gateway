@@ -16,16 +16,16 @@
 package at.rodrigo.api.gateway.utils;
 
 import at.rodrigo.api.gateway.cache.RunningApiManager;
-import at.rodrigo.api.gateway.entity.Api;
-import at.rodrigo.api.gateway.entity.EndpointType;
-import at.rodrigo.api.gateway.entity.Path;
-import at.rodrigo.api.gateway.entity.RunningApi;
 import at.rodrigo.api.gateway.processor.AuthProcessor;
 import at.rodrigo.api.gateway.processor.MetricsProcessor;
 import at.rodrigo.api.gateway.processor.PathVariableProcessor;
 import at.rodrigo.api.gateway.processor.RouteErrorProcessor;
 import at.rodrigo.api.gateway.routes.PathRouteRepublisher;
 import at.rodrigo.api.gateway.routes.SuspendedRouteBuilder;
+import at.rodrigo.api.gateway.schema.Api;
+import at.rodrigo.api.gateway.schema.EndpointType;
+import at.rodrigo.api.gateway.schema.Path;
+import at.rodrigo.api.gateway.schema.RunningApi;
 import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelContext;
@@ -40,7 +40,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.apache.camel.language.constant.ConstantLanguage.constant;
-
 
 @Component
 @Slf4j

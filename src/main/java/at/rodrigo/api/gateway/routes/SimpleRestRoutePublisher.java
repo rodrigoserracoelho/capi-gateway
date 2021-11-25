@@ -16,9 +16,9 @@
 package at.rodrigo.api.gateway.routes;
 
 import at.rodrigo.api.gateway.cache.ThrottlingManager;
-import at.rodrigo.api.gateway.entity.Api;
-import at.rodrigo.api.gateway.entity.Path;
 import at.rodrigo.api.gateway.repository.ApiRepository;
+import at.rodrigo.api.gateway.schema.Api;
+import at.rodrigo.api.gateway.schema.Path;
 import at.rodrigo.api.gateway.utils.CamelUtils;
 import at.rodrigo.api.gateway.utils.GrafanaUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +27,6 @@ import org.apache.camel.model.RouteDefinition;
 import org.apache.camel.model.rest.RestOperationParamDefinition;
 import org.apache.camel.model.rest.RestParamType;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 

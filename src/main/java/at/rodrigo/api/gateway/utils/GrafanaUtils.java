@@ -15,7 +15,6 @@
 
 package at.rodrigo.api.gateway.utils;
 
-import at.rodrigo.api.gateway.entity.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

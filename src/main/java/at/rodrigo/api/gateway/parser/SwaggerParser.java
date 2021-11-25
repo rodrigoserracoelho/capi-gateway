@@ -15,8 +15,8 @@
 
 package at.rodrigo.api.gateway.parser;
 
-import at.rodrigo.api.gateway.entity.Path;
-import at.rodrigo.api.gateway.entity.Verb;
+import at.rodrigo.api.gateway.schema.Path;
+import at.rodrigo.api.gateway.schema.Verb;
 import io.swagger.models.Swagger;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.PathItem;

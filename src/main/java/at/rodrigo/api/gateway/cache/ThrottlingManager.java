@@ -15,9 +15,9 @@
 
 package at.rodrigo.api.gateway.cache;
 
-import at.rodrigo.api.gateway.entity.Api;
-import at.rodrigo.api.gateway.entity.Path;
-import at.rodrigo.api.gateway.entity.ThrottlingPolicy;
+import at.rodrigo.api.gateway.schema.Api;
+import at.rodrigo.api.gateway.schema.Path;
+import at.rodrigo.api.gateway.schema.ThrottlingPolicy;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.map.IMap;
 import lombok.extern.slf4j.Slf4j;
@@ -98,5 +98,4 @@ public class ThrottlingManager {
         localThrottlingPolicy.setPeriodForMaxCalls(throttlingPolicy.getPeriodForMaxCalls());
         return localThrottlingPolicy;
     }
-
 }

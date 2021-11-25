@@ -16,8 +16,8 @@
 package at.rodrigo.api.gateway.controller;
 
 import at.rodrigo.api.gateway.cache.RunningApiManager;
-import at.rodrigo.api.gateway.entity.RunningApi;
 import at.rodrigo.api.gateway.exception.CapiRestException;
+import at.rodrigo.api.gateway.schema.RunningApi;
 import at.rodrigo.api.gateway.utils.Constants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

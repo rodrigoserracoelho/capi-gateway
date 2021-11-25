@@ -15,10 +15,10 @@
 
 package at.rodrigo.api.gateway.cache;
 
-import at.rodrigo.api.gateway.entity.Api;
-import at.rodrigo.api.gateway.entity.RunningApi;
-import at.rodrigo.api.gateway.entity.SuspensionType;
-import at.rodrigo.api.gateway.entity.Verb;
+import at.rodrigo.api.gateway.schema.Api;
+import at.rodrigo.api.gateway.schema.RunningApi;
+import at.rodrigo.api.gateway.schema.SuspensionType;
+import at.rodrigo.api.gateway.schema.Verb;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.map.IMap;
 import lombok.extern.slf4j.Slf4j;

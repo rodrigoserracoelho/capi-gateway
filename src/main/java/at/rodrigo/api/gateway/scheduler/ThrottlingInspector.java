@@ -17,9 +17,9 @@ package at.rodrigo.api.gateway.scheduler;
 
 import at.rodrigo.api.gateway.cache.RunningApiManager;
 import at.rodrigo.api.gateway.cache.ThrottlingManager;
-import at.rodrigo.api.gateway.entity.RunningApi;
-import at.rodrigo.api.gateway.entity.SuspensionType;
-import at.rodrigo.api.gateway.entity.ThrottlingPolicy;
+import at.rodrigo.api.gateway.schema.RunningApi;
+import at.rodrigo.api.gateway.schema.SuspensionType;
+import at.rodrigo.api.gateway.schema.ThrottlingPolicy;
 import com.hazelcast.map.IMap;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -12,19 +12,21 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
-
-package at.rodrigo.api.gateway.exception;
+package at.rodrigo.api.gateway.schema;
 
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.annotation.Id;
 
-@Slf4j
+import java.io.Serializable;
+
 @Data
-public class CapiRestException {
-    private String routeID;
-    private String errorMessage;
-    private int errorCode;
-    private String exception;
-    private String internalExceptionMessage;
-    private String zipkinTraceID;
+public class KafkaRoute implements Serializable {
+    @Id
+    private String id;
+    private String brokerEndpoint;
+    private String topicName;
+    private String groupID;
+    private String httpEndpoint;
+    private String expectedHeaders;
+    private boolean preserveKafkaHeaders;
 }

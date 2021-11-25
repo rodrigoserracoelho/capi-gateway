@@ -16,7 +16,7 @@
 package at.rodrigo.api.gateway.security;
 
 import at.rodrigo.api.gateway.cache.NewApiManager;
-import at.rodrigo.api.gateway.entity.Api;
+import at.rodrigo.api.gateway.schema.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

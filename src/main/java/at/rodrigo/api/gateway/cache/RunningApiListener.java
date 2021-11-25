@@ -15,7 +15,7 @@
 
 package at.rodrigo.api.gateway.cache;
 
-import at.rodrigo.api.gateway.entity.RunningApi;
+import at.rodrigo.api.gateway.schema.RunningApi;
 import at.rodrigo.api.gateway.utils.CamelUtils;
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.map.listener.*;
