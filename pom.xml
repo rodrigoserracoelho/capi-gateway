@@ -19,12 +19,12 @@
 
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>at.rodrigo.api.gateway</groupId>
+  <groupId>io.surisoft.capi.gateway</groupId>
   <artifactId>capi-gateway</artifactId>
   <packaging>jar</packaging>
-  <version>1.5.0</version>
+  <version>1.5.1</version>
 
-  <name>CAPI - API Gateway</name>
+  <name>CAPI Gateway</name>
 
   <parent>
     <groupId>org.springframework.boot</groupId>
