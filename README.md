@@ -1,8 +1,8 @@
-![CAPI-CICD](https://github.com/rodrigoserracoelho/capi-gateway/workflows/CAPI-CICD/badge.svg?branch=master)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-![Docker Image Version (latest by date)](https://img.shields.io/docker/v/surisoft/capi-gateway)
+## This repository is being deprecated, please visit: [CAPI-LB](https://github.com/surisoft-io/capi-lb) ## 
 
-# CAPI Gateway [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=CAPI%20Apache%20Camel%20API%20Gateway&url=https://github.com/rodrigoserracoelho/capi-gateway)
+
+
+
 ###### Light API Gateway implemented with Apache Camel
 
 Apache Con 2020 Presentation: https://www.youtube.com/watch?v=sEKCI8IBCfc
