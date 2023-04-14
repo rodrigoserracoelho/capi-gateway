@@ -45,7 +45,7 @@
     <com.google.cloud.tools-version>2.6.0</com.google.cloud.tools-version>
     <io.swagger.parser.v3-version>2.0.23</io.swagger.parser.v3-version>
     <com.nimbus-version>8.26</com.nimbus-version>
-    <org.json-version>20201115</org.json-version>
+    <org.json-version>20230227</org.json-version>
     <org.projectlombok-version>1.18.16</org.projectlombok-version>
     <io.micrometer-version>1.6.1</io.micrometer-version>
     <io.zipkin.reporter2-version>2.16.0</io.zipkin.reporter2-version>
